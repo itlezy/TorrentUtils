@@ -69,11 +69,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MonoTorrent.Client\MonoTorrent.Client.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.Client\MonoTorrent.Client.csproj">
       <Project>{411a9e0e-fdc6-4e25-828a-0c2cd1cd96f8}</Project>
       <Name>MonoTorrent.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent\MonoTorrent.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent\MonoTorrent.csproj">
       <Project>{fa1e561b-2882-46b4-b2fe-677cababdefb}</Project>
       <Name>MonoTorrent</Name>
     </ProjectReference>

@@ -65,21 +65,21 @@
       <Project>{462C9AAA-1F59-4D6B-8E27-4122A6158B5A}</Project>
       <Name>ILCommon</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent.BEncoding\MonoTorrent.BEncoding.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.BEncoding\MonoTorrent.BEncoding.csproj">
       <Project>{5D8AA8FE-05DB-4D6F-A330-941733087821}</Project>
       <Name>MonoTorrent.BEncoding</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent.Client\MonoTorrent.Client.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.Client\MonoTorrent.Client.csproj">
       <Project>{411a9e0e-fdc6-4e25-828a-0c2cd1cd96f8}</Project>
       <Name>MonoTorrent.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent\MonoTorrent.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent\MonoTorrent.csproj">
       <Project>{fa1e561b-2882-46b4-b2fe-677cababdefb}</Project>
       <Name>MonoTorrent</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="001_rrr.cmd" />
+    <None Include="001_ArchiveTorrents.cmd" />
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>

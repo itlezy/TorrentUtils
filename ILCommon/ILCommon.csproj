@@ -55,15 +55,15 @@
     <Content Include="nugetlibs.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MonoTorrent.BEncoding\MonoTorrent.BEncoding.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.BEncoding\MonoTorrent.BEncoding.csproj">
       <Project>{5d8aa8fe-05db-4d6f-a330-941733087821}</Project>
       <Name>MonoTorrent.BEncoding</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent.Client\MonoTorrent.Client.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.Client\MonoTorrent.Client.csproj">
       <Project>{411a9e0e-fdc6-4e25-828a-0c2cd1cd96f8}</Project>
       <Name>MonoTorrent.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MonoTorrent\MonoTorrent.csproj">
+    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent\MonoTorrent.csproj">
       <Project>{fa1e561b-2882-46b4-b2fe-677cababdefb}</Project>
       <Name>MonoTorrent</Name>
     </ProjectReference>
