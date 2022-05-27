@@ -19,8 +19,8 @@ namespace MetadataDownloader
 {
     class QueueManager
     {
-        MDConfig ac = new MDConfig ();
-        DAO dao = new DAO ();
+        readonly MDConfig ac = new MDConfig ();
+        readonly DAO dao = new DAO ();
         int timeoutCount = 0, downloadedCount = 0, skippedCount = 0;
         DateTime lastDowloaded = DateTime.Now;
 
@@ -43,9 +43,6 @@ namespace MetadataDownloader
                     Console.WriteLine (
                         $"DownloadAsync()  Metadata Received {Green (magnetLink.InfoHashes.V1.ToHex ().ToLower ())} - * [ {Magenta (manager.Torrent.Name)} ] * -");
 
-
-                    //manager.Files.OrderByDescending (t => t.Length).First ().FullPath
-
                     dao.UpdateHashId (
                         new MTorr () {
                             HashId = magnetLink.InfoHashes.V1.ToHex ().ToLower (),
@@ -58,10 +55,11 @@ namespace MetadataDownloader
                     try {
                         var fName = manager.Files.OrderByDescending (t => t.Length).First ().Path;
                         var fLen = manager.Files.OrderByDescending (t => t.Length).First ().Length;
+                        var fileNameManager = new FileNameManager ();
 
                         // here I can decide if the torrent largest file already exists, then I can skip to save it
 
-                        if (fLen < (512 * 1024 * 1024)) {
+                        if (fLen < (512 * 1024 * 1024)) { // if file less than 512Mb, skip
                             skippedCount++;
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, file too small [ {fName} ], {fLen}");
@@ -71,7 +69,7 @@ namespace MetadataDownloader
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, already downloaded [ {fName} ], {fLen}");
 
-                        } else if (!new FileNameManager ().IsMostlyLatin (manager.Torrent.Name)) {
+                        } else if (!fileNameManager.IsMostlyLatin (manager.Torrent.Name)) {
                             skippedCount++;
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, non latin file [ {fName} ], {fLen}");
@@ -80,12 +78,12 @@ namespace MetadataDownloader
                             downloadedCount++;
                             lastDowloaded = DateTime.Now;
 
-                            var subCat = new FileNameManager ().GetSubCat (manager.Torrent.Name);
+                            var subCat = fileNameManager.GetSubCat (manager.Torrent.Name);
 
                             File.Copy (manager.MetadataPath,
                                 ac.TORRENT_OUTPUT_PATH + subCat + @"\" +
-                                "G" + (10 * Math.Round ((double) fLen / (1024 * 1024 * 1024), 1)) + "_" +
-                                manager.Torrent.Name + ".torrent");
+                                "G" + (10 * Math.Round ((double) fLen / (1024 * 1024 * 1024), 1)).ToString ().PadLeft (3, '0') + "_" +
+                                fileNameManager.SafeName (manager.Torrent.Name) + ".torrent");
 
                         }
                     } catch (Exception ex) {

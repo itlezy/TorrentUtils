@@ -16,7 +16,7 @@ namespace ArchiveTorrents
 {
     class Program
     {
-        static LockManager lockManager = new LockManager ();
+        static readonly LockManager lockManager = new LockManager ();
 
         static void Main (String[] args)
         {

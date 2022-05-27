@@ -17,6 +17,9 @@ namespace ArchiveTorrents
         public readonly String TORR_INCOMING_DIR = ConfigurationManager.AppSettings["TORR_INCOMING_DIR"];
         public readonly String TORR_INPUT_DIR = Environment.GetFolderPath (Environment.SpecialFolder.UserProfile) + @"\Downloads";
 
+        /// <summary>
+        /// SQLite DB path of downloaded torrents
+        /// </summary>
         public readonly string SDB_DLD_URL = ConfigurationManager.AppSettings["SDB_DLD_URL"];
 
     }

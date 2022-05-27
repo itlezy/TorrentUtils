@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace ILCommon
                 }
             }
 
-            return ((double) latinc / (double) cc.Length) > 0.5;
+            return ((double) latinc / (double) cc.Length) > 0.6;
         }
 
         public String GetSubCat (String fileName)
@@ -44,6 +45,20 @@ namespace ILCommon
             }
 
             return subCat;
+        }
+
+        public String SafeName (String fileName, char replacementChar = '_')
+        {
+            var invalidChars = new HashSet<char> (Path.GetInvalidFileNameChars ());
+            var fileNameCharArr = fileName.ToCharArray ();
+
+            for (int i = 0; i < fileNameCharArr.Length; i++) {
+                if (invalidChars.Contains (fileNameCharArr[i])) {
+                    fileNameCharArr[i] = replacementChar;
+                }
+            }
+
+            return new String (fileNameCharArr);
         }
     }
 }

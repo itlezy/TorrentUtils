@@ -4,12 +4,17 @@ CD /D %~dp0
 
 CD /D %G_BIN%\MetadataDownloader
 
+SET BT_LOGS_DIR=c:\tmp1
+
 REM concatenate qBittorrent log files
-find "- handleDHT" c:\tmp1\qb*.log* > z_in_log_hashes.txt
+find "- handleDHT" %BT_LOGS_DIR%\qbittorrent.log* > z_in_log_hashes.txt
 
 REM Load new hashes to DB
 MetadataDownloader.exe -s -i z_in_log_hashes.txt
 
-CALL 002_updateTorrentStatus.cmd
+IF %ERRORLEVEL% EQ 0 (
+  DEL /Q %BT_LOGS_DIR%\qbittorrent.log.bak*
+  CALL 002_updateTorrentStatus.cmd
+)
 
 PAUSE

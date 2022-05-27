@@ -14,13 +14,18 @@ namespace MetadataDownloader
         public readonly int TORRENT_PARALLEL_LIMIT = int.Parse (ConfigurationManager.AppSettings["TORRENT_PARALLEL_LIMIT"]);
         public readonly int TORRENT_STOP_TIMEOUT = int.Parse (ConfigurationManager.AppSettings["TORRENT_STOP_TIMEOUT"]);
         public readonly string TORRENT_OUTPUT_PATH = ConfigurationManager.AppSettings["TORRENT_OUTPUT_PATH"];
-        public readonly string DB_URL = ConfigurationManager.AppSettings["DB_URL"];
-        public readonly string DB_NAME = ConfigurationManager.AppSettings["DB_NAME"];
-        public readonly string DB_COLLECTION_NAME = ConfigurationManager.AppSettings["DB_COLLECTION_NAME"];
+
         public readonly string TMP_SAVE_DIR = ConfigurationManager.AppSettings["TMP_SAVE_DIR"];
         public readonly string MAGNET_PREFIX = ConfigurationManager.AppSettings["MAGNET_PREFIX"];
 
+        /// <summary>
+        /// SQLite DB path of captured hash log and downloaded hashes
+        /// </summary>
         public readonly string SDB_URL = ConfigurationManager.AppSettings["SDB_URL"];
+
+        /// <summary>
+        /// SQLite DB path of downloaded torrents
+        /// </summary>
         public readonly string SDB_DLD_URL = ConfigurationManager.AppSettings["SDB_DLD_URL"];
 
         public readonly bool DEBUG_MODE = false;

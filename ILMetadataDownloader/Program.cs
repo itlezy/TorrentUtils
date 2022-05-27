@@ -13,7 +13,7 @@ namespace MetadataDownloader
 {
     partial class Program
     {
-        static LockManager lockManager = new LockManager ();
+        static readonly LockManager lockManager = new LockManager ();
 
         static void Main (string[] args)
         {
