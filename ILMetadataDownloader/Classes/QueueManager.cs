@@ -146,7 +146,7 @@ namespace MetadataDownloader
                     timeoutCount,
                     skippedCount,
                     engine.Dht.NodeCount,
-                    lastDowloaded.ToLongTimeString()
+                    lastDowloaded.ToLongTimeString ()
                     );
 
                 if (engine.Torrents.Count < ac.TORRENT_PARALLEL_LIMIT) {

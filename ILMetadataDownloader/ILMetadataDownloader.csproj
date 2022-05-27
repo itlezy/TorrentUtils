@@ -13,6 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -60,6 +61,9 @@
     <Compile Include="Classes\TestManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="002_updateTorrentStatus.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="099_loadHashesToDB.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -76,6 +80,10 @@
     <ProjectReference Include="..\..\monotorrent\src\MonoTorrent\MonoTorrent.csproj">
       <Project>{fa1e561b-2882-46b4-b2fe-677cababdefb}</Project>
       <Name>MonoTorrent</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ILCommon\ILCommon.csproj">
+      <Project>{462C9AAA-1F59-4D6B-8E27-4122A6158B5A}</Project>
+      <Name>ILCommon</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
