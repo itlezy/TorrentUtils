@@ -22,6 +22,9 @@ namespace MetadataDownloader
         [Option ('t', "loadtorrents", Required = false, HelpText = "Load downloaded torrents to DB")]
         public bool LoadDownloadedTorrents { get; set; }
 
+        [Option ('r', "printstats", Required = false, HelpText = "Print DB Stats")]
+        public bool PrintStats { get; set; }
+
         [Option ('d', "inputdir", Required = false, HelpText = "Input directory to search for files")]
         public String InputDir { get; set; }
 

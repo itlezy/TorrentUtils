@@ -13,6 +13,8 @@ namespace ILCommon.IO
 {
     public class IOManager
     {
+        const bool DEBUG_MODE = false;
+
         public class ListDownloadedTorrentsRet
         {
             public List<MDownloadedTorr> MDownloadedTorrs { get; }
@@ -51,10 +53,12 @@ namespace ILCommon.IO
                             var fName = torr.Files.OrderByDescending (t => t.Length).First ().Path;
                             var fLen = torr.Files.OrderByDescending (t => t.Length).First ().Length;
 
-                            Console.WriteLine ("Torr {0} \t{1} \tfile {2}",
-                                torr.InfoHashes.V1OrV2.ToHex ().ToLower (),
-                                fLen,
-                                fName);
+                            if (DEBUG_MODE) {
+                                Console.WriteLine ("Torr {0} \t{1} \tfile {2}",
+                                    torr.InfoHashes.V1OrV2.ToHex ().ToLower (),
+                                    fLen,
+                                    fName);
+                            }
 
                             r.MDownloadedFiles.Add (new MDownloadedFile () {
                                 FileName = fName,

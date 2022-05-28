@@ -39,21 +39,52 @@ namespace MetadataDownloader
         /// <returns></returns>
         public int UpdateDownloadedTorrentsStatus (List<MTorr> torrs)
         {
+            Console.WriteLine ("UpdateDownloadedTorrentsStatus() ..");
+
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
                 var ins = db.InsertAll (torrs, " OR IGNORE ");
 
-                Console.WriteLine ("Loaded {0} records out of {1} ..", ins, torrs.Count);
+                Console.WriteLine ("Loaded \t{0} records out of \t{1} ..", ins, torrs.Count);
 
             }
 
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
                 var ins = db.UpdateAll (torrs);
 
-                Console.WriteLine ("Updated {0} records out of {1} ..", ins, torrs.Count);
+                Console.WriteLine ("Updated \t{0} records out of \t{1} ..", ins, torrs.Count);
 
                 return ins;
             }
 
+        }
+
+        internal void PrintTableStats ()
+        {
+            Console.WriteLine ("PrintTableStats() ..");
+
+            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+                var query = "";
+
+                query = "SELECT COUNT(*) FROM MTorr";
+                var tcount = db.ExecuteScalar<long> (query);
+
+                query = "SELECT COUNT(*) FROM MTorrLog";
+                var tlcount = db.ExecuteScalar<long> (query);
+
+                query = "SELECT COUNT(*) FROM MTorr WHERE (Processed = true)";
+                var pcount = db.ExecuteScalar<long> (query);
+
+                query = "SELECT COUNT(*) FROM MTorr WHERE (Processed <> true)";
+                var npcount = db.ExecuteScalar<long> (query);
+
+                query = "SELECT COUNT(*) FROM MTorr WHERE (Downloaded = true)";
+                var dcount = db.ExecuteScalar<long> (query);
+
+                query = "SELECT COUNT(*) FROM MTorr WHERE (Timeout = true)";
+                var ttcount = db.ExecuteScalar<long> (query);
+
+                Console.WriteLine ($"Total Torrs \t{tcount}\n non-processed \t{npcount}\n processed \t{pcount}\n timeout \t{ttcount}\n downloaded \t{dcount}\n log table \t{tlcount}");
+            }
         }
 
         public String GetNextHashId ()
@@ -121,12 +152,15 @@ namespace MetadataDownloader
 
         public void LoadHashesFromFile (String inputFile) //TODO: this should be split in IO and DAO
         {
+            Console.WriteLine ("LoadHashesFromFile() [{0}]", inputFile);
             var lines = File.ReadAllLines (inputFile);
 
-            Console.WriteLine ("Loaded {0} lines from file [{1}]", lines.Length, inputFile);
+            Console.WriteLine ("Loaded \t{0} lines from file [{1}]", lines.Length, inputFile);
             //Console.ReadLine ();
 
             var mTorrs = new List<MTorrLog> ();
+
+            Console.WriteLine ("Processing lines, extracting hashes..");
 
             foreach (var line in lines) {
                 if (line.Length < 50) { continue; }
@@ -148,15 +182,18 @@ namespace MetadataDownloader
                 // Console.WriteLine ("Date [{0}], HashId [{1}]", dateSeen, hashId);
             }
 
-            // SELECT DISTINCT HashId, count(hashid) as m from MTorrLog group by hashid order by m desc
+            Console.WriteLine ("Found {0} hashed from text file..", mTorrs.Count);
+
+            Console.WriteLine ("Insert new records to Log Table..");
 
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
                 var ins = db.InsertAll (mTorrs, " OR IGNORE ");
 
-                Console.WriteLine ("Loaded {0} records to Log Table out of {1} ..", ins, lines.Length);
+                Console.WriteLine ("Loaded \t{0} records to Log Table out of \t{1} ..", ins, lines.Length);
             }
 
-            // insert new records
+            Console.WriteLine ("Insert new records to Tor Table..");
+
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
                 var ins = db.Execute (@"INSERT INTO MTorr (HashId, CountSeen, LastSeen, Processed)
                                         SELECT DISTINCT 
@@ -168,10 +205,11 @@ namespace MetadataDownloader
                                         GROUP BY HashId
                                         ORDER BY CountSeen DESC");
 
-                Console.WriteLine ("Loaded {0} records to Tor Table out of {1} ..", ins, lines.Length);
+                Console.WriteLine ("Loaded \t{0} records to Tor Table out of \t{1} ..", ins, lines.Length);
             }
 
-            // update counts and lastseen
+            Console.WriteLine ("Updating counts and lastSeen..");
+
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
                 var ins = db.Execute (@"UPDATE MTorr
                                         SET
@@ -181,7 +219,7 @@ namespace MetadataDownloader
                                             SELECT HashId FROM MTorrLog WHERE MTorrLog.HashId = MTorr.HashId
                                         )");
 
-                Console.WriteLine ("Updated stats of {0} records to Tor Table ..", ins);
+                Console.WriteLine ("Updated stats of \t{0} records to Tor Table ..", ins);
             }
 
         }

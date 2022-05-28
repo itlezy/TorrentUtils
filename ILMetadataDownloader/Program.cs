@@ -42,6 +42,9 @@ namespace MetadataDownloader
             } else if (opts.LoadDownloadedTorrents && Directory.Exists (opts.InputDir)) {
 
                 new QueueManager ().LoadDownloadedTorrents (opts.InputDir);
+            } else if (opts.PrintStats) {
+
+                new DAO ().PrintTableStats ();
             } else if (opts.RunTests) {
 
                 new TestManager ().RunTests ();
