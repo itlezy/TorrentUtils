@@ -21,6 +21,9 @@ IF %ERRORLEVEL% NEQ 0 (
   CALL 002_updateTorrentStatus.cmd
 )
 
+REM Clean ban words from DB
+MetadataDownloader.exe -b
+
 REM Print DB Stats
 MetadataDownloader.exe -r
 

@@ -32,6 +32,20 @@ namespace MetadataDownloader
 
         }
 
+        public void CleanBanWords ()
+        {
+            var banWords = File.ReadAllLines (ac.BAN_WORDS_FILE).Where (m => !String.IsNullOrWhiteSpace (m));
+
+            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+                foreach (var banWord in banWords) {
+
+                    var ins = db.Execute ($"UPDATE MTorr SET Processed = true, Downloaded = false, Timeout = false, Name = '--------', Comment = '--------' WHERE (Name LIKE '%{banWord}%' OR Comment LIKE '%{banWord}%')");
+
+                    Console.WriteLine ("Cleaned \t{0} records, banWord \t{1}", ins, banWord);
+                }
+            }
+        }
+
         /// <summary>
         /// Updates the torrents' status by processing local metadata torrent files, so to avoid duplicates
         /// </summary>

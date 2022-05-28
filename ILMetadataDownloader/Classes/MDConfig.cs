@@ -28,6 +28,12 @@ namespace MetadataDownloader
         /// </summary>
         public readonly string SDB_DLD_URL = ConfigurationManager.AppSettings["SDB_DLD_URL"];
 
+        /// <summary>
+        /// File containing ban words to avoid when downloading metadata, one word per line
+        /// </summary>
+        public string BAN_WORDS_FILE = ConfigurationManager.AppSettings["BAN_WORDS_FILE"];
+
         public readonly bool DEBUG_MODE = false;
+
     }
 }

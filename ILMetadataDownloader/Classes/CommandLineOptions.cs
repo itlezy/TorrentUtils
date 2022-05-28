@@ -30,5 +30,8 @@ namespace MetadataDownloader
 
         [Option ('x', "runtests", Required = false, HelpText = "Run a set of tests")]
         public bool RunTests { get; set; }
+
+        [Option ('b', "cleanbanwords", Required = false, HelpText = "Clean ban words from DB")]
+        public bool CleanBanWords { get; set; }
     }
 }

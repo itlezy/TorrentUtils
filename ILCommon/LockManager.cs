@@ -8,6 +8,7 @@ namespace ILCommon
 {
     public class LockManager
     {
+        bool didILock = false;
         private readonly String LockFile = ".lck"; 
 
         public bool AcquireLock()
@@ -18,6 +19,7 @@ namespace ILCommon
                 {
                     using (File.Create(LockFile))
                     {
+                        didILock = true;
                         return true;
                     }
                 }
@@ -31,7 +33,7 @@ namespace ILCommon
 
         public void ReleaseLock()
         {
-            if (File.Exists(LockFile))
+            if (didILock && File.Exists(LockFile))
             {
                 try
                 {
