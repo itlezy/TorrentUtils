@@ -104,7 +104,7 @@ namespace MetadataDownloader
         public String GetNextHashId ()
         {
             using (var db = new SQLiteConnection (ac.SDB_URL)) {
-                var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY CountSeen DESC LIMIT 1";
+                var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
 
                 if (ac.DEBUG_MODE)
@@ -196,7 +196,7 @@ namespace MetadataDownloader
                 // Console.WriteLine ("Date [{0}], HashId [{1}]", dateSeen, hashId);
             }
 
-            Console.WriteLine ("Found {0} hashed from text file..", mTorrs.Count);
+            Console.WriteLine ("Found \t{0} hashes from text file..", mTorrs.Count);
 
             Console.WriteLine ("Insert new records to Log Table..");
 
