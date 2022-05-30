@@ -17,8 +17,8 @@ namespace ArchiveTorrents
 {
     class ArchiveManager
     {
-        ATConfig c = new ATConfig ();
-        DAO dao = new DAO ();
+        readonly ATConfig c = new ATConfig ();
+        readonly DAO dao = new DAO ();
 
         /// <summary>
         /// Removes duplicate torrent files by checking the tables of downloaded torrents, downloaded files and the directory archive just in case

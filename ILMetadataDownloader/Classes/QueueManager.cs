@@ -155,7 +155,9 @@ namespace MetadataDownloader
                 if (engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
                     var hash = dao.GetNextHashId ();
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                     DownloadAsync (hash, engine, token);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 } else {
                     // FIFO logic, just remove the oldest
                     var torrent = engine.Torrents.First ();
