@@ -19,7 +19,7 @@ namespace MetadataDownloader
 {
     class QueueManager
     {
-        readonly MDConfig ac = new MDConfig ();
+        readonly MDConfig c = new MDConfig ();
         readonly DAO dao = new DAO ();
         int timeoutCount = 0, downloadedCount = 0, skippedCount = 0;
         DateTime lastDowloaded = DateTime.Now;
@@ -29,23 +29,25 @@ namespace MetadataDownloader
             ClientEngine engine,
             CancellationToken token)
         {
-            if (MagnetLink.TryParse (ac.MAGNET_PREFIX + hash, out MagnetLink magnetLink)) {
+            if (MagnetLink.TryParse (c.MAGNET_PREFIX + hash, out MagnetLink magnetLink)) {
 
-                var manager = await engine.AddAsync (magnetLink, ac.TMP_SAVE_DIR);
+                var manager = await engine.AddAsync (magnetLink, c.TMP_SAVE_DIR);
+                var hashId = magnetLink.InfoHashes.V1.ToHex ().ToLower ();
 
                 Console.WriteLine (
-                    $"DownloadAsync()  Adding   torrent  {Green (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}");
+                    $"DownloadAsync()  Adding   torrent  {Green (hashId)}");
 
                 await manager.StartAsync ();
                 await manager.WaitForMetadataAsync (token);
 
                 if (manager.HasMetadata && manager.Files.Count > 0) {
+
                     Console.WriteLine (
-                        $"DownloadAsync()  Metadata Received {Green (magnetLink.InfoHashes.V1.ToHex ().ToLower ())} - * [ {Magenta (manager.Torrent.Name)} ] * -");
+                        $"DownloadAsync()  Metadata Received {Green (hashId)} - * [ {Magenta (manager.Torrent.Name)} ] * -");
 
                     dao.UpdateHashId (
                         new MTorr () {
-                            HashId = magnetLink.InfoHashes.V1.ToHex ().ToLower (),
+                            HashId = hashId,
                             Name = manager.Torrent.Name,
                             Length = manager.Torrent.Size,
                             Comment = manager.Torrent.Comment,
@@ -62,17 +64,20 @@ namespace MetadataDownloader
                         if (fLen < (512 * 1024 * 1024)) { // if file less than 512Mb, skip
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, file too small [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, file too small [ {fName} ], {fLen}");
 
-                        } else if (dao.HasBeenDownloaded (new MDownloadedFile () { FileName = fName, Length = fLen })) {
+                        } else if (
+                            dao.HasBeenDownloaded (new MDownloadedFile () { FileName = fName, Length = fLen }) ||
+                            dao.HasBeenDownloaded (new MDownloadedTorr () { HashId = hashId })
+                            ) { //TODO maybe check also hashId when loading torrhashes
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, already downloaded [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, already downloaded [ {fName} ], {fLen}");
 
                         } else if (!fileNameManager.IsMostlyLatin (manager.Torrent.Name)) {
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (magnetLink.InfoHashes.V1.ToHex ().ToLower ())}, non latin file [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, non latin file [ {fName} ], {fLen}");
 
                         } else {
                             downloadedCount++;
@@ -81,7 +86,7 @@ namespace MetadataDownloader
                             var subCat = fileNameManager.GetSubCat (manager.Torrent.Name);
 
                             File.Copy (manager.MetadataPath,
-                                ac.TORRENT_OUTPUT_PATH + subCat + @"\" +
+                                c.TORRENT_OUTPUT_PATH + subCat + @"\" +
                                 "G" + (10 * Math.Round ((double) fLen / (1024 * 1024 * 1024), 1)).ToString ().PadLeft (3, '0') + "_" +
                                 fileNameManager.SafeName (manager.Torrent.Name) + ".torrent");
 
@@ -92,7 +97,7 @@ namespace MetadataDownloader
 
                 }
 
-                await manager.StopAsync (new TimeSpan (0, 0, ac.TORRENT_STOP_TIMEOUT));
+                await manager.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
 
                 try {
                     await engine.RemoveAsync (manager.Torrent, RemoveMode.CacheDataAndDownloadedData);
@@ -135,11 +140,11 @@ namespace MetadataDownloader
                 Console.WriteLine ("MainLoop()       uPnP or NAT-PMP port mappings will be created for any ports needed by MonoTorrent");
 
             while (true) {
-                await Task.Delay (ac.MAIN_LOOP_INTERVAL);
+                await Task.Delay (c.MAIN_LOOP_INTERVAL);
 
                 Console.WriteLine ("MainLoop()       Checking for torrents count {0} / {1} - Dowloaded {2}, Timedout {3}, Skipped {4} - DHT nodes {5}, last Downloaded at {6}",
                     engine.Torrents.Count,
-                    ac.TORRENT_PARALLEL_LIMIT - 1,
+                    c.TORRENT_PARALLEL_LIMIT - 1,
                     downloadedCount,
                     timeoutCount,
                     skippedCount,
@@ -147,18 +152,20 @@ namespace MetadataDownloader
                     lastDowloaded.ToLongTimeString ()
                     );
 
-                if (engine.Torrents.Count < ac.TORRENT_PARALLEL_LIMIT) {
+                if (engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
                     var hash = dao.GetNextHashId ();
 
                     DownloadAsync (hash, engine, token);
                 } else {
                     // FIFO logic, just remove the oldest
                     var torrent = engine.Torrents.First ();
-                    Console.WriteLine ($"MainLoop()       Removing torrent  {Red (torrent.InfoHashes.V1.ToHex ().ToLower ())}");
+                    var hashId = torrent.InfoHashes.V1.ToHex ().ToLower ();
+
+                    Console.WriteLine ($"MainLoop()       Removing torrent  {Red (hashId)}");
 
                     dao.UpdateHashId (
                        new MTorr () {
-                           HashId = torrent.InfoHashes.V1.ToHex ().ToLower (),
+                           HashId = hashId,
                            Name = null,
                            Length = 0,
                            Comment = null,
@@ -167,7 +174,7 @@ namespace MetadataDownloader
 
                     timeoutCount++;
 
-                    await torrent.StopAsync (new TimeSpan (0, 0, ac.TORRENT_STOP_TIMEOUT));
+                    await torrent.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
 
                     try {
                         await engine.RemoveAsync (torrent, RemoveMode.CacheDataAndDownloadedData);

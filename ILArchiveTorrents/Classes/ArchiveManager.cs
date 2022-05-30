@@ -118,6 +118,51 @@ namespace ArchiveTorrents
                 Console.WriteLine ();
             }
 
+            // process hash files
+            Console.WriteLine ();
+            Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], processing hash files..");
+            Console.WriteLine ();
+
+            var torrHashFiles = Directory.GetFiles (c.TORR_INPUT_DIR, c.TORR_HASH_EXT_WILDCARD);
+            totalFiles += torrHashFiles.Length;
+
+            for (var i = 0; i < torrHashFiles.Length; i++) {
+                var torrHashFile = new FileInfo (torrHashFiles[i]);
+
+                //Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }]");
+
+                var torrHashId = Path.GetFileNameWithoutExtension (torrHashFile.Name).ToLower ();
+
+                Console.WriteLine ($"Found file        [{ Magenta (torrHashFile.Name) }], hashId { Green (torrHashId) }");
+
+                if (dao.HasBeenDownloaded (torrHashId)) {
+                    // remove duplicate if the same hashId was already in the list
+                    Console.WriteLine ($"Duplicate found L [{ Red (torrHashFile.Name) }], removing..");
+                    duplicatesCount++;
+                } else {
+                    Console.WriteLine ($"Archiving torrent [{ Green (torrHashFile.Name) }]");
+
+                    File.AppendAllLines (c.TORR_INPUT_DIR + "\\dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new String[] { torrHashId });
+
+                    // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
+                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new String[] { torrHashId });
+
+                    dao.LoadDownloadedTorrents (
+                        new List<MDownloadedTorr> () {
+                            new MDownloadedTorr () {
+                                HashId = torrHashId,
+                                Length = -1,
+                                Name = torrHashId
+                            } });
+
+                    copiedCount++;
+                }
+
+                // delete original file at the end
+                File.Delete (torrHashFile.FullName);
+                Console.WriteLine ();
+            }
+
             Console.WriteLine ();
             Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
 

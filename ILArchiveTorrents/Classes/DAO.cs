@@ -13,16 +13,16 @@ namespace ArchiveTorrents
 {
     class DAO
     {
-        ATConfig ac = new ATConfig ();
+        ATConfig c = new ATConfig ();
 
         public void CreateTables ()
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
                 db.CreateTable<MDownloadedTorr> ();
                 db.CreateTable<MDownloadedFile> ();
             }
 
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
                 var ins = db.Execute (
                     "CREATE UNIQUE INDEX \"MTorrFileSummary_UQ\" ON \"MDownloadedTorr\" ( \"FileName\"    ASC, \"Length\"    ASC )"
                 );
@@ -32,7 +32,7 @@ namespace ArchiveTorrents
         }
         public int LoadDownloadedFiles (List<MDownloadedFile> files)
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
                 var ins = db.InsertAll (files, " OR IGNORE ");
 
                 return ins;
@@ -42,7 +42,7 @@ namespace ArchiveTorrents
 
         public int LoadDownloadedTorrents (List<MDownloadedTorr> torrs)
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
                 var ins = db.InsertAll (torrs, " OR IGNORE ");
 
                 return ins;
@@ -51,7 +51,7 @@ namespace ArchiveTorrents
 
         public bool HasBeenDownloaded (String hashId)
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
                 return db.ExecuteScalar<int> (
                     "SELECT COUNT(*) FROM MDownloadedTorr M WHERE (M.HashId = ?)",
                     hashId) > 0;
@@ -60,7 +60,7 @@ namespace ArchiveTorrents
 
         public bool HasBeenDownloaded (MDownloadedFile mDownloadedFile)
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
                 return db.ExecuteScalar<int> (
                     "SELECT COUNT(*) FROM MDownloadedFile M WHERE (M.FileName = ? AND M.LENGTH = ?)",
                     mDownloadedFile.FileName,

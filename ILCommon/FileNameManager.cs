@@ -13,7 +13,14 @@ namespace ILCommon
         {
             return originalName
                 .Replace ("-[rarbg.to]", "")
-                .Replace ("[rarbg]", "");
+                .Replace ("-[rarbg]", "")
+                .Replace ("-[rbg.to]", "")
+                .Replace ("-[rbg]", "")
+
+                .Replace ("[rarbg.to]", "")
+                .Replace ("[rarbg]", "")
+                .Replace ("[rbg.to]", "")
+                .Replace ("[rbg]", "");
         }
 
         public bool IsMostlyLatin (String fileName)

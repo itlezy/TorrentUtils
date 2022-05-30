@@ -13,17 +13,17 @@ namespace MetadataDownloader
 {
     class DAO
     {
-        private MDConfig ac = new MDConfig ();
+        private MDConfig c = new MDConfig ();
 
         public void CreateTables ()
         {
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 db.CreateTable<MTorrLog> ();
                 db.CreateTable<MTorr> ();
 
             }
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.Execute (
                     "CREATE UNIQUE INDEX \"MTorrLog_UQ\" ON \"MTorrLog\" ( \"HashId\"    ASC, \"SeenAt\"    ASC )"
                 );
@@ -34,9 +34,9 @@ namespace MetadataDownloader
 
         public void CleanBanWords ()
         {
-            var banWords = File.ReadAllLines (ac.BAN_WORDS_FILE).Where (m => !String.IsNullOrWhiteSpace (m));
+            var banWords = File.ReadAllLines (c.BAN_WORDS_FILE).Where (m => !String.IsNullOrWhiteSpace (m));
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 foreach (var banWord in banWords) {
 
                     var ins = db.Execute ($"UPDATE MTorr SET Processed = true, Downloaded = false, Timeout = false, Name = '--------', Comment = '--------' WHERE (Name LIKE '%{banWord}%' OR Comment LIKE '%{banWord}%')");
@@ -55,14 +55,14 @@ namespace MetadataDownloader
         {
             Console.WriteLine ("UpdateDownloadedTorrentsStatus() ..");
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.InsertAll (torrs, " OR IGNORE ");
 
                 Console.WriteLine ("Loaded \t{0} records out of \t{1} ..", ins, torrs.Count);
 
             }
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.UpdateAll (torrs);
 
                 Console.WriteLine ("Updated \t{0} records out of \t{1} ..", ins, torrs.Count);
@@ -76,7 +76,7 @@ namespace MetadataDownloader
         {
             Console.WriteLine ("PrintTableStats() ..");
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var query = "";
 
                 query = "SELECT COUNT(*) FROM MTorr";
@@ -103,11 +103,11 @@ namespace MetadataDownloader
 
         public String GetNextHashId ()
         {
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
 
-                if (ac.DEBUG_MODE)
+                if (c.DEBUG_MODE)
                     Console.WriteLine ("GetNextHashId()  Found Torrent {0}, countSeen {2}, processedTime {1}",
                         mTorr.HashId,
                         mTorr.ProcessedTime,
@@ -119,7 +119,7 @@ namespace MetadataDownloader
 
                 var upds = db.Update (mTorr);
 
-                if (ac.DEBUG_MODE)
+                if (c.DEBUG_MODE)
                     Console.WriteLine ("GetNextHashId()  Found Torrent {0}, updated {1} record", mTorr.HashId, upds);
 
                 return mTorr.HashId;
@@ -128,7 +128,7 @@ namespace MetadataDownloader
 
         public bool HasBeenDownloaded (MDownloadedFile mDownloadedFile)
         {
-            using (var db = new SQLiteConnection (ac.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
                 return db.ExecuteScalar<int> (
                     "SELECT COUNT(*) FROM MDownloadedFile M WHERE (M.FileName = ? AND M.LENGTH = ?)",
                     mDownloadedFile.FileName,
@@ -136,12 +136,21 @@ namespace MetadataDownloader
             }
         }
 
+        public bool HasBeenDownloaded (MDownloadedTorr mDownloadedTorr)
+        {
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
+                return db.ExecuteScalar<int> (
+                    "SELECT COUNT(*) FROM MDownloadedTorr M WHERE (M.HashId = ?)",
+                    mDownloadedTorr.HashId) > 0;
+            }
+        }
+
         public void UpdateHashId (MTorr mTorrentU)
         {
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var mTorr = db.Query<MTorr> ("SELECT * FROM MTorr WHERE HashId = ? LIMIT 1", mTorrentU.HashId).FirstOrDefault ();
 
-                if (ac.DEBUG_MODE)
+                if (c.DEBUG_MODE)
                     Console.WriteLine ("UpdateHashId()   Found Torrent {0}, countSeen {2}, processedTime {1}",
                         mTorr.HashId,
                         mTorr.ProcessedTime,
@@ -159,7 +168,7 @@ namespace MetadataDownloader
 
                 var upds = db.Update (mTorr);
 
-                if (ac.DEBUG_MODE)
+                if (c.DEBUG_MODE)
                     Console.WriteLine ("UpdateHashId()   Found Torrent {0}, updated {1} record", mTorr.HashId, upds);
             }
         }
@@ -200,7 +209,7 @@ namespace MetadataDownloader
 
             Console.WriteLine ("Insert new records to Log Table..");
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.InsertAll (mTorrs, " OR IGNORE ");
 
                 Console.WriteLine ("Loaded \t{0} records to Log Table out of \t{1} ..", ins, lines.Length);
@@ -208,7 +217,7 @@ namespace MetadataDownloader
 
             Console.WriteLine ("Insert new records to Tor Table..");
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.Execute (@"INSERT INTO MTorr (HashId, CountSeen, LastSeen, Processed)
                                         SELECT DISTINCT 
                                           HashId, COUNT(HashId) AS CountSeen, MAX(SeenAt) AS LastSeen, 0 as Processed
@@ -224,7 +233,7 @@ namespace MetadataDownloader
 
             Console.WriteLine ("Updating counts and lastSeen..");
 
-            using (var db = new SQLiteConnection (ac.SDB_URL)) {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var ins = db.Execute (@"UPDATE MTorr
                                         SET
                                             CountSeen = (SELECT COUNT(MTorrLog.HashId) AS CountSeen FROM MTorrLog WHERE MTorr.HashId = MTorrLog.HashId GROUP BY MTorrLog.HashId),

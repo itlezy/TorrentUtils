@@ -10,6 +10,7 @@ namespace ArchiveTorrents
     class ATConfig
     {
         public readonly String TORR_EXT_WILDCARD = ConfigurationManager.AppSettings["TORR_EXT_WILDCARD"];
+        public readonly String TORR_HASH_EXT_WILDCARD = ConfigurationManager.AppSettings["TORR_HASH_EXT_WILDCARD"];
         public readonly String TORR_ARCHIVE_DIR = ConfigurationManager.AppSettings["TORR_ARCHIVE_DIR"];
         public readonly String TORR_ARCHIVE_DIR_OLD = ConfigurationManager.AppSettings["TORR_ARCHIVE_DIR_OLD"];
         public readonly String TORR_ARCHIVE_REG = ConfigurationManager.AppSettings["TORR_ARCHIVE_REG"];
