@@ -180,7 +180,7 @@ namespace ArchiveTorrents
 
             var ins = dao.LoadDownloadedFiles (ff);
 
-            Console.WriteLine ("Loaded {0} MDownloadedFiles records out of {1} ..", ins, ff.Count);
+            Console.WriteLine ("Loaded \t{0} MDownloadedFiles records out of \t{1} ..", ins, ff.Count);
         }
 
         /// <summary>
@@ -194,11 +194,11 @@ namespace ArchiveTorrents
 
             ins = dao.LoadDownloadedTorrents (ff.MDownloadedTorrs);
 
-            Console.WriteLine ("Loaded {0} MDownloadedTorrs records out of {1} ..", ins, ff.MDownloadedTorrs.Count);
+            Console.WriteLine ("Loaded \t{0} MDownloadedTorrs records out of \t{1} ..", ins, ff.MDownloadedTorrs.Count);
 
             ins = dao.LoadDownloadedFiles (ff.MDownloadedFiles);
 
-            Console.WriteLine ("Loaded {0} MDownloadedFiles records out of {1} ..", ins, ff.MDownloadedFiles.Count);
+            Console.WriteLine ("Loaded \t{0} MDownloadedFiles records out of \t{1} ..", ins, ff.MDownloadedFiles.Count);
 
         }
 
