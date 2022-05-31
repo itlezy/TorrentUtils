@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -42,10 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\CommonConfig.cs" />
+    <Compile Include="Data\BaseDAO.cs" />
     <Compile Include="FileNameManager.cs" />
     <Compile Include="IO\IOManager.cs" />
     <Compile Include="LockManager.cs" />
-    <Compile Include="Model\Model.cs" />
+    <Compile Include="Data\Model.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

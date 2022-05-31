@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using ILCommon;
+using ILCommon.Data.Model;
 using ILCommon.IO;
-using ILCommon.Model;
 
 using MonoTorrent;
 
@@ -92,9 +90,9 @@ namespace ArchiveTorrents
                                 );
 
                     // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
-                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new String[] { torrHashId });
+                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
                     // add the largest file name and size to the list, so to be sure we can detect duplicates even if the file-name differs or it's the same file in different torrent files
-                    File.AppendAllLines (c.TORR_ARCHIVE_FILES_REG, new String[] { torrLargestFile.Path + "|" + torrLargestFile.Length });
+                    File.AppendAllLines (c.TORR_ARCHIVE_FILES_REG, new string[] { torrLargestFile.Path + "|" + torrLargestFile.Length });
 
                     dao.LoadDownloadedFiles (
                         new List<MDownloadedFile> () {
@@ -105,7 +103,7 @@ namespace ArchiveTorrents
                             new MDownloadedTorr () {
                                 HashId = torrHashId,
                                 Length = torrTorr.Size,
-                                Name = !String.IsNullOrWhiteSpace (torrTorr.Name) ?
+                                Name = !string.IsNullOrWhiteSpace (torrTorr.Name) ?
                                     new FileNameManager ().NormalizeFileName (torrTorr.Name) :
                                     new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name))
                             } });
@@ -142,10 +140,10 @@ namespace ArchiveTorrents
                 } else {
                     Console.WriteLine ($"Archiving torrent [{ Green (torrHashFile.Name) }]");
 
-                    File.AppendAllLines (c.TORR_INPUT_DIR + "\\dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new String[] { torrHashId });
+                    File.AppendAllLines (c.TORR_INPUT_DIR + "\\dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new string[] { torrHashId });
 
                     // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
-                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new String[] { torrHashId });
+                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
 
                     dao.LoadDownloadedTorrents (
                         new List<MDownloadedTorr> () {
@@ -174,33 +172,32 @@ namespace ArchiveTorrents
         /// Loads the table of downloaded files (name, size) by scanning a local directory
         /// </summary>
         /// <param name="inputDir"></param>
-        public void LoadDownloadedFiles (String inputDir)
+        public void LoadDownloadedFiles (string inputDir)
         {
             var ff = new IOManager ().ListDownloadedFiles (inputDir);
 
             var ins = dao.LoadDownloadedFiles (ff);
 
-            Console.WriteLine ("Loaded \t{0} MDownloadedFiles records out of \t{1} ..", ins, ff.Count);
+            Console.WriteLine ("Loaded \t{0:n0} MDownloadedFiles records out of \t{1:n0} ..", ins, ff.Count);
         }
 
         /// <summary>
         /// Loads the table of downloaded torrents (hashId) *and* the table of downloaded files, based on the torrent metadata
         /// </summary>
         /// <param name="inputDir"></param>
-        public void LoadDownloadedTorrents (String inputDir)
+        public void LoadDownloadedTorrents (string inputDir)
         {
             var ins = 0;
             var ff = new IOManager ().ListDownloadedTorrents (inputDir);
 
             ins = dao.LoadDownloadedTorrents (ff.MDownloadedTorrs);
 
-            Console.WriteLine ("Loaded \t{0} MDownloadedTorrs records out of \t{1} ..", ins, ff.MDownloadedTorrs.Count);
+            Console.WriteLine ("Loaded \t{0:n0} MDownloadedTorrs records out of \t{1:n0} ..", ins, ff.MDownloadedTorrs.Count);
 
             ins = dao.LoadDownloadedFiles (ff.MDownloadedFiles);
 
-            Console.WriteLine ("Loaded \t{0} MDownloadedFiles records out of \t{1} ..", ins, ff.MDownloadedFiles.Count);
+            Console.WriteLine ("Loaded \t{0:n0} MDownloadedFiles records out of \t{1:n0} ..", ins, ff.MDownloadedFiles.Count);
 
         }
-
     }
 }

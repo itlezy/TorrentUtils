@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using SQLite;
 
-namespace ILCommon.Model
+namespace ILCommon.Data.Model
 {
     /// <summary>
     /// Represents a torrent file info, to skip duplicates, used by ArchiveTorrents
@@ -14,9 +10,9 @@ namespace ILCommon.Model
     public class MDownloadedTorr
     {
         [PrimaryKey, MaxLength (256)]
-        public String HashId { get; set; }
+        public string HashId { get; set; }
 
-        public String Name { get; set; }
+        public string Name { get; set; }
 
         public long Length { get; set; }
 
@@ -28,7 +24,7 @@ namespace ILCommon.Model
     public class MDownloadedFile
     {
         [PrimaryKey, MaxLength (512)]
-        public String FileName { get; set; }
+        public string FileName { get; set; }
 
         public long Length { get; set; }
 
@@ -44,7 +40,7 @@ namespace ILCommon.Model
         [Indexed]
         public DateTime SeenAt { get; set; }
         [Indexed]
-        public String HashId { get; set; }
+        public string HashId { get; set; }
     }
 
     /// <summary>
@@ -53,10 +49,10 @@ namespace ILCommon.Model
     public class MTorr
     {
         [PrimaryKey, MaxLength (40)]
-        public String HashId { get; set; }
+        public string HashId { get; set; }
 
-        public String Name { get; set; }
-        public String Comment { get; set; }
+        public string Name { get; set; }
+        public string Comment { get; set; }
 
         [Indexed]
         public int CountSeen { get; set; }

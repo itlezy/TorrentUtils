@@ -1,5 +1,9 @@
 ﻿using System;
 
+using ILCommon.Data.Model;
+
+using MetadataDownloader.Data;
+
 namespace MetadataDownloader
 {
     internal class TestManager
@@ -10,7 +14,7 @@ namespace MetadataDownloader
 
             Console.WriteLine ("Test execution {0}",
                 dao.HasBeenDownloaded (
-                    new ILCommon.Model.MDownloadedFile () {
+                    new MDownloadedFile () {
                         FileName = " 720p.mp4",
                         Length = 1682214819
                     })
@@ -19,13 +23,11 @@ namespace MetadataDownloader
 
             Console.WriteLine ("Test execution {0}",
                 dao.HasBeenDownloaded (
-                    new ILCommon.Model.MDownloadedFile () {
+                    new MDownloadedFile () {
                         FileName = " 720p.mp4",
                         Length = 1682214810
                     })
                 );
-
-
         }
     }
 }

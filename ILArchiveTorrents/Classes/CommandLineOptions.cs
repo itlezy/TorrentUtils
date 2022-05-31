@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using CommandLine;
 
 namespace ArchiveTorrents
@@ -20,7 +15,7 @@ namespace ArchiveTorrents
         public bool LoadDownloadedTorrents { get; set; }
 
         [Option ('d', "inputdir", Required = false, HelpText = "Input directory to search for files")]
-        public String InputDir { get; set; }
+        public string InputDir { get; set; }
 
 
     }

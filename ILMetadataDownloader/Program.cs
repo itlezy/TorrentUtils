@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 
-using ILCommon;
 using CommandLine;
 
+using ILCommon;
+
+using MetadataDownloader.Data;
 
 namespace MetadataDownloader
 {

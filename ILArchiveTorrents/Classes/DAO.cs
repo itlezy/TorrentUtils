@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-using ILCommon.Model;
+using ILCommon.Data;
+using ILCommon.Data.Model;
 
 using SQLite;
 
 namespace ArchiveTorrents
 {
-    class DAO
+    class DAO : BaseDAO
     {
-        ATConfig c = new ATConfig ();
+        readonly ATConfig c = new ATConfig ();
 
         public void CreateTables ()
         {
@@ -49,22 +45,12 @@ namespace ArchiveTorrents
             }
         }
 
-        public bool HasBeenDownloaded (String hashId)
+        public bool HasBeenDownloaded (string hashId)
         {
             using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
                 return db.ExecuteScalar<int> (
                     "SELECT COUNT(*) FROM MDownloadedTorr M WHERE (M.HashId = ?)",
                     hashId) > 0;
-            }
-        }
-
-        public bool HasBeenDownloaded (MDownloadedFile mDownloadedFile)
-        {
-            using (var db = new SQLiteConnection (c.SDB_DLD_URL, SQLiteOpenFlags.ReadOnly)) {
-                return db.ExecuteScalar<int> (
-                    "SELECT COUNT(*) FROM MDownloadedFile M WHERE (M.FileName = ? AND M.LENGTH = ?)",
-                    mDownloadedFile.FileName,
-                    mDownloadedFile.Length) > 0;
             }
         }
     }

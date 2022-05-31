@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
-using ILCommon;
-
-using MonoTorrent;
 using CommandLine;
 
-using ILCommon.Model;
+using ILCommon;
 
 namespace ArchiveTorrents
 {
@@ -18,7 +12,7 @@ namespace ArchiveTorrents
     {
         static readonly LockManager lockManager = new LockManager ();
 
-        static void Main (String[] args)
+        static void Main (string[] args)
         {
             try {
                 if (lockManager.AcquireLock ()) {
@@ -58,7 +52,5 @@ namespace ArchiveTorrents
             //handle errors
             Console.Error.WriteLine ("Command line nope!");
         }
-
-
     }
 }

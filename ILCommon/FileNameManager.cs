@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ILCommon
 {
     public class FileNameManager
     {
-        public String NormalizeFileName (String originalName)
+        public string NormalizeFileName (string originalName)
         {
             return originalName
                 .Replace ("-[rarbg.to]", "")
@@ -23,7 +19,7 @@ namespace ILCommon
                 .Replace ("[rbg]", "");
         }
 
-        public bool IsMostlyLatin (String fileName)
+        public bool IsMostlyLatin (string fileName)
         {
             var cc = fileName.ToCharArray ();
             var latinc = 0;
@@ -37,7 +33,7 @@ namespace ILCommon
             return ((double) latinc / (double) cc.Length) > 0.6;
         }
 
-        public String GetSubCat (String fileName)
+        public string GetSubCat (string fileName)
         {
             var subCat = "generic";
 
@@ -54,7 +50,7 @@ namespace ILCommon
             return subCat;
         }
 
-        public String SafeName (String fileName, char replacementChar = '_')
+        public string SafeName (string fileName, char replacementChar = '_')
         {
             var invalidChars = new HashSet<char> (Path.GetInvalidFileNameChars ());
             var fileNameCharArr = fileName.ToCharArray ();
@@ -65,7 +61,7 @@ namespace ILCommon
                 }
             }
 
-            return new String (fileNameCharArr);
+            return new string (fileNameCharArr);
         }
     }
 }

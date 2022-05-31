@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using ILCommon;
+using ILCommon.Data.Model;
 using ILCommon.IO;
-using ILCommon.Model;
+
+using MetadataDownloader.Data;
 
 using MonoTorrent;
 using MonoTorrent.Client;
@@ -25,7 +27,7 @@ namespace MetadataDownloader
         DateTime lastDowloaded = DateTime.Now;
 
         public async Task DownloadAsync (
-            String hash,
+            string hash,
             ClientEngine engine,
             CancellationToken token)
         {
@@ -64,7 +66,7 @@ namespace MetadataDownloader
                         if (fLen < (512 * 1024 * 1024)) { // if file less than 512Mb, skip
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, file too small [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, file too small [ {fName} ] {fLen:n0}");
 
                         } else if (
                             dao.HasBeenDownloaded (new MDownloadedFile () { FileName = fName, Length = fLen }) ||
@@ -72,12 +74,12 @@ namespace MetadataDownloader
                             ) { //TODO maybe check also hashId when loading torrhashes
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, already downloaded [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, already downloaded [ {fName} ] {fLen:n0}");
 
                         } else if (!fileNameManager.IsMostlyLatin (manager.Torrent.Name)) {
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, non latin file [ {fName} ], {fLen}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, non latin file [ {fName} ] {fLen:n0}");
 
                         } else {
                             downloadedCount++;
@@ -142,7 +144,7 @@ namespace MetadataDownloader
             while (true) {
                 await Task.Delay (c.MAIN_LOOP_INTERVAL);
 
-                Console.WriteLine ("MainLoop()       Checking for torrents count {0} / {1} - Dowloaded {2}, Timedout {3}, Skipped {4} - DHT nodes {5}, last Downloaded at {6}",
+                Console.WriteLine ("MainLoop()       Checking for torrents count {0} / {1} - Dowloaded {2:n0} Timedout {3:n0} Skipped {4:n0} - DHT nodes {5} last Downloaded at {6}",
                     engine.Torrents.Count,
                     c.TORRENT_PARALLEL_LIMIT - 1,
                     downloadedCount,
@@ -203,7 +205,7 @@ namespace MetadataDownloader
         /// so to avoid duplicate downloads when we've already downloaded a torrent
         /// </summary>
         /// <param name="inputDir"></param>
-        public void LoadDownloadedTorrents (String inputDir)
+        public void LoadDownloadedTorrents (string inputDir)
         {
             var ff = new IOManager ().ListDownloadedTorrents (inputDir);
             var mf = new List<MTorr> ();

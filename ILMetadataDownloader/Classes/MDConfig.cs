@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Configuration;
 
 namespace MetadataDownloader
 {
-    class MDConfig
+    class MDConfig : ILCommon.Config.CommonConfig
     {
         // The timeout will be determined by TORRENT_PARALLEL_LIMIT * MAIN_LOOP_INTERVAL as torrents get removed on a FIFO logic basis
         public readonly int MAIN_LOOP_INTERVAL = int.Parse (ConfigurationManager.AppSettings["MAIN_LOOP_INTERVAL"]);
@@ -19,21 +14,9 @@ namespace MetadataDownloader
         public readonly string MAGNET_PREFIX = ConfigurationManager.AppSettings["MAGNET_PREFIX"];
 
         /// <summary>
-        /// SQLite DB path of captured hash log and downloaded hashes
-        /// </summary>
-        public readonly string SDB_URL = ConfigurationManager.AppSettings["SDB_URL"];
-
-        /// <summary>
-        /// SQLite DB path of downloaded torrents
-        /// </summary>
-        public readonly string SDB_DLD_URL = ConfigurationManager.AppSettings["SDB_DLD_URL"];
-
-        /// <summary>
         /// File containing ban words to avoid when downloading metadata, one word per line
         /// </summary>
         public string BAN_WORDS_FILE = ConfigurationManager.AppSettings["BAN_WORDS_FILE"];
-
-        public readonly bool DEBUG_MODE = false;
 
     }
 }

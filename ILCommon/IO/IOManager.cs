@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using ILCommon.Model;
+using ILCommon.Data.Model;
 
 using MonoTorrent;
 
@@ -13,7 +11,7 @@ namespace ILCommon.IO
 {
     public class IOManager
     {
-        const bool DEBUG_MODE = false;
+        readonly Config.CommonConfig c = new Config.CommonConfig ();
 
         public class ListDownloadedTorrentsRet
         {
@@ -27,10 +25,8 @@ namespace ILCommon.IO
             }
         }
 
-        public ListDownloadedTorrentsRet ListDownloadedTorrents (String inputDir)
+        public ListDownloadedTorrentsRet ListDownloadedTorrents (string inputDir)
         {
-            // Console.Error.WriteLine ($"Processing Input Directory [{ Green (inputDir)}], looking for files gt than 10Mb..");
-
             var allFiles = Directory.GetFiles (inputDir, "*.torrent", SearchOption.AllDirectories);
             var r = new ListDownloadedTorrentsRet ();
 
@@ -44,7 +40,7 @@ namespace ILCommon.IO
 
                             r.MDownloadedTorrs.Add (new MDownloadedTorr () {
                                 HashId = torr.InfoHashes.V1OrV2.ToHex ().ToLower (),
-                                Name = !String.IsNullOrWhiteSpace (torr.Name) ?
+                                Name = !string.IsNullOrWhiteSpace (torr.Name) ?
                                 new FileNameManager ().NormalizeFileName (torr.Name) :
                                 new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (file.Name)),
                                 Length = torr.Size
@@ -53,12 +49,8 @@ namespace ILCommon.IO
                             var fName = torr.Files.OrderByDescending (t => t.Length).First ().Path;
                             var fLen = torr.Files.OrderByDescending (t => t.Length).First ().Length;
 
-                            if (DEBUG_MODE) {
-                                Console.WriteLine ("Torr {0} \t{1} \tfile {2}",
-                                    torr.InfoHashes.V1OrV2.ToHex ().ToLower (),
-                                    fLen,
-                                    fName);
-                            }
+                            if (c.DEBUG_MODE)
+                                Console.WriteLine ("Torr {0} \t{1:n0} \tfile {2}", torr.InfoHashes.V1OrV2.ToHex ().ToLower (), fLen, fName);
 
                             r.MDownloadedFiles.Add (new MDownloadedFile () {
                                 FileName = fName,
@@ -80,12 +72,13 @@ namespace ILCommon.IO
             return r;
         }
 
-        public List<MDownloadedFile> ListDownloadedFiles (String inputDir)
+        public List<MDownloadedFile> ListDownloadedFiles (string inputDir)
         {
             // generate the index of files + "|" + size, so to skip dups of files we have no torrent for
             const int MB_10 = 1024 * 1024 * 10;
 
-            // Console.Error.WriteLine ($"Processing Input Directory [{ Green (inputDir)}], looking for files gt than 10Mb..");
+            if (c.DEBUG_MODE)
+                Console.Error.WriteLine ($"Processing Input Directory [{inputDir}], looking for files gt than 10Mb..");
 
             var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
             var mFiles = new List<MDownloadedFile> ();
