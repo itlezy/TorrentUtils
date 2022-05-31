@@ -23,6 +23,8 @@ namespace MetadataDownloader
     {
         readonly MDConfig c = new MDConfig ();
         readonly DAO dao = new DAO ();
+        readonly List<int> avgResponseTime = new List<int> () { 0 };
+
         int timeoutCount = 0, downloadedCount = 0, skippedCount = 0;
         DateTime lastDowloaded = DateTime.Now;
 
@@ -43,10 +45,6 @@ namespace MetadataDownloader
                 await manager.WaitForMetadataAsync (token);
 
                 if (manager.HasMetadata && manager.Files.Count > 0) {
-
-                    Console.WriteLine (
-                        $"DownloadAsync()  Metadata Received {Green (hashId)} - * [ {Magenta (manager.Torrent.Name)} ] * -");
-
                     dao.UpdateHashId (
                         new MTorr () {
                             HashId = hashId,
@@ -55,6 +53,13 @@ namespace MetadataDownloader
                             Comment = manager.Torrent.Comment,
                             Timeout = false
                         });
+
+                    //var d = manager.StartTime.Ticks;
+
+                    Console.WriteLine (
+                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {(DateTime.Now - manager.StartTime).Milliseconds:n0}ms - * [ {Magenta (manager.Torrent.Name)} ] * -");
+
+                    avgResponseTime.Add ((DateTime.Now - manager.StartTime).Milliseconds);
 
                     try {
                         var fName = manager.Files.OrderByDescending (t => t.Length).First ().Path;
@@ -66,7 +71,7 @@ namespace MetadataDownloader
                         if (fLen < (512 * 1024 * 1024)) { // if file less than 512Mb, skip
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, file too small [ {fName} ] {fLen:n0}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} file too small [ {fName} ] {fLen:n0}");
 
                         } else if (
                             dao.HasBeenDownloaded (new MDownloadedFile () { FileName = fName, Length = fLen }) ||
@@ -74,12 +79,12 @@ namespace MetadataDownloader
                             ) { //TODO maybe check also hashId when loading torrhashes
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, already downloaded [ {fName} ] {fLen:n0}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} already downloaded [ {fName} ] {fLen:n0}");
 
                         } else if (!fileNameManager.IsMostlyLatin (manager.Torrent.Name)) {
                             skippedCount++;
 
-                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)}, non latin file [ {fName} ] {fLen:n0}");
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} non latin file [ {fName} ] {fLen:n0}");
 
                         } else {
                             downloadedCount++;
@@ -144,15 +149,15 @@ namespace MetadataDownloader
             while (true) {
                 await Task.Delay (c.MAIN_LOOP_INTERVAL);
 
-                Console.WriteLine ("MainLoop()       Checking for torrents count {0} / {1} - Dowloaded {2:n0} Timedout {3:n0} Skipped {4:n0} - DHT nodes {5} last Downloaded at {6}",
+                Console.WriteLine ("MainLoop()       Checking for torrents count {0,3} / {1,3} - Dowloaded {2,5:n0} Timedout {3,5:n0} Skipped {4,5:n0} - DHT nodes {5,4} last dld {6,4:n0}s ago, avg {7,3:n0}ms",
                     engine.Torrents.Count,
                     c.TORRENT_PARALLEL_LIMIT - 1,
                     downloadedCount,
                     timeoutCount,
                     skippedCount,
                     engine.Dht.NodeCount,
-                    lastDowloaded.ToLongTimeString ()
-                    );
+                    (DateTime.Now - lastDowloaded).Seconds,
+                    avgResponseTime.Average ());
 
                 if (engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
                     var hash = dao.GetNextHashId ();
