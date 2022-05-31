@@ -54,8 +54,6 @@ namespace MetadataDownloader
                             Timeout = false
                         });
 
-                    //var d = manager.StartTime.Ticks;
-
                     Console.WriteLine (
                         $"DownloadAsync()  Metadata Received {Green (hashId)} in {(DateTime.Now - manager.StartTime).Milliseconds:n0}ms - * [ {Magenta (manager.Torrent.Name)} ] * -");
 
@@ -68,7 +66,7 @@ namespace MetadataDownloader
 
                         // here I can decide if the torrent largest file already exists, then I can skip to save it
 
-                        if (fLen < (512 * 1024 * 1024)) { // if file less than 512Mb, skip
+                        if (fLen < (c.TORRENT_MIN_FILE_SIZE_MB * 1024 * 1024)) {
                             skippedCount++;
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} file too small [ {fName} ] {fLen:n0}");
@@ -149,7 +147,7 @@ namespace MetadataDownloader
             while (true) {
                 await Task.Delay (c.MAIN_LOOP_INTERVAL);
 
-                Console.WriteLine ("MainLoop()       Checking for torrents count {0,3} / {1,3} - Dowloaded {2,5:n0} Timedout {3,5:n0} Skipped {4,5:n0} - DHT nodes {5,4} last dld {6,4:n0}s ago, avg {7,3:n0}ms",
+                Console.WriteLine ("MainLoop()       Checking for torrents count {0,3} / {1,3} - Dowloaded {2,6:n0} Timedout {3,6:n0} Skipped {4,6:n0} - DHT nodes {5,4} last dld {6,4:n0}s ago, avg {7,3:n0}ms",
                     engine.Torrents.Count,
                     c.TORRENT_PARALLEL_LIMIT - 1,
                     downloadedCount,
