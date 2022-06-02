@@ -72,6 +72,18 @@ namespace ILCommon.IO
             return r;
         }
 
+        public void CleanDirs (string[] dirs)
+        {
+            foreach (var dir in dirs) {
+                try {
+                    if (Directory.Exists (dir))
+                        Directory.Delete (dir, true);
+                } catch (Exception ex) {
+                    Console.Error.WriteLine ($"Error deleting dir {dir} - {ex.Message}");
+                }
+            }
+        }
+
         public List<MDownloadedFile> ListDownloadedFiles (string inputDir)
         {
             // generate the index of files + "|" + size, so to skip dups of files we have no torrent for

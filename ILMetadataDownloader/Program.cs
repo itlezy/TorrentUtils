@@ -6,6 +6,7 @@ using System.Threading;
 using CommandLine;
 
 using ILCommon;
+using ILCommon.IO;
 
 using MetadataDownloader.Data;
 
@@ -65,6 +66,8 @@ namespace MetadataDownloader
 
         static void MetadataDownload ()
         {
+            new IOManager ().CleanDirs (new string[] { new MDConfig ().TMP_SAVE_DIR, "cache" });
+
             CancellationTokenSource cancellation = new CancellationTokenSource ();
 
             var task = new QueueManager ().MainLoop (cancellation.Token);

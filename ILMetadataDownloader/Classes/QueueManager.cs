@@ -54,10 +54,12 @@ namespace MetadataDownloader
                             Timeout = false
                         });
 
-                    Console.WriteLine (
-                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {(DateTime.Now - manager.StartTime).Milliseconds:n0}ms - * [ {Magenta (manager.Torrent.Name)} ] * -");
+                    var elapsedms = (DateTime.Now - manager.StartTime).Milliseconds + (DateTime.Now - manager.StartTime).Seconds * 1000;
 
-                    avgResponseTime.Add ((DateTime.Now - manager.StartTime).Milliseconds);
+                    Console.WriteLine (
+                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {elapsedms:n0}ms - * [ {Magenta (manager.Torrent.Name)} ] * -");
+
+                    avgResponseTime.Add (elapsedms);
 
                     try {
                         var fName = manager.Files.OrderByDescending (t => t.Length).First ().Path;
@@ -97,9 +99,11 @@ namespace MetadataDownloader
 
                         }
                     } catch (Exception ex) {
-                        Console.Error.WriteLine (ex.Message);
+                        Console.Error.WriteLine ($"DownloadAsync()  Exception thrown  {Red (hashId)} {Red (ex.Message)}");
                     }
 
+                } else {
+                    Console.WriteLine ($"DownloadAsync()  No metadata for   {Red (hashId)} *** \\*//");
                 }
 
                 await manager.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
@@ -154,7 +158,7 @@ namespace MetadataDownloader
                     timeoutCount,
                     skippedCount,
                     engine.Dht.NodeCount,
-                    (DateTime.Now - lastDowloaded).Seconds,
+                    (DateTime.Now - lastDowloaded).Seconds + ((DateTime.Now - lastDowloaded).Minutes * 60),
                     avgResponseTime.Average ());
 
                 if (engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
