@@ -46,23 +46,24 @@ namespace MetadataDownloader
                 await manager.WaitForMetadataAsync (token);
 
                 if (manager.HasMetadata && manager.Files.Count > 0) {
+                    var fileNameManager = new FileNameManager ();
+
                     var utName = manager.Torrent.Name;
                     var utComment = manager.Torrent.Comment;
+                    var fName = manager.Files.OrderByDescending (t => t.Length).First ().Path;
+                    var fLen = manager.Files.OrderByDescending (t => t.Length).First ().Length;
+
                     var elapsedms = (DateTime.Now - manager.StartTime).Milliseconds + (DateTime.Now - manager.StartTime).Seconds * 1000;
 
                     Console.WriteLine (
-                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {elapsedms:n0}ms - * [ {Magenta (utName)} ] * -");
+                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {elapsedms:n0}ms - * [ {Magenta (utName)} ] * - {fLen:n0}");
 
                     avgResponseTime.Add (elapsedms);
 
                     try {
-                        var fName = manager.Files.OrderByDescending (t => t.Length).First ().Path;
-                        var fLen = manager.Files.OrderByDescending (t => t.Length).First ().Length;
-                        var fileNameManager = new FileNameManager ();
-
                         // here I can decide if the torrent largest file already exists, then I can skip to save it
 
-                        if (fLen < (c.TORRENT_MIN_FILE_SIZE_MB * 1024 * 1024)) {
+                        if (fLen < (c.TORRENT_MIN_FILE_SIZE_MB * 1024 * 1024)) { // TODO not really interested in the overall size, as no compressed stuff
                             skippedCount++;
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} file too small [ {fName} ] {fLen:n0}");

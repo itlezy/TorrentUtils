@@ -57,7 +57,7 @@ namespace ArchiveTorrents
                 var normalizedName = new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name));
 
                 Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }], hashId { Green (torrHashId) }");
-                Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString ()) } ");
+                Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString("n0") ) } ");
 
                 if (dao.HasBeenDownloaded (torrHashId)) {
                     // remove duplicate if the same hashId was already in the list
