@@ -51,7 +51,7 @@ namespace MetadataDownloader
                 new TestManager ().RunTests ();
             } else if (opts.CleanBanWords) {
 
-                new DAO ().CleanBanWords ();
+                new DAO ().CleanBanWords (opts.InputDir);
             } else {
 
                 MetadataDownload ();

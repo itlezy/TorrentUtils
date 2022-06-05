@@ -24,14 +24,15 @@ namespace MetadataDownloader
         readonly MDConfig c = new MDConfig ();
         readonly DAO dao = new DAO ();
         readonly List<int> avgResponseTime = new List<int> () { 0 };
+        readonly IEnumerable<string> banWords = File.ReadAllLines (new MDConfig ().BAN_WORDS_FILE).Where (m => !string.IsNullOrWhiteSpace (m));
 
         int timeoutCount = 0, downloadedCount = 0, skippedCount = 0;
         DateTime lastDowloaded = DateTime.Now;
 
         public async Task DownloadAsync (
-            string hash,
-            ClientEngine engine,
-            CancellationToken token)
+        string hash,
+        ClientEngine engine,
+        CancellationToken token)
         {
             if (MagnetLink.TryParse (c.MAGNET_PREFIX + hash, out MagnetLink magnetLink)) {
 
@@ -45,19 +46,12 @@ namespace MetadataDownloader
                 await manager.WaitForMetadataAsync (token);
 
                 if (manager.HasMetadata && manager.Files.Count > 0) {
-                    dao.UpdateHashId (
-                        new MTorr () {
-                            HashId = hashId,
-                            Name = manager.Torrent.Name,
-                            Length = manager.Torrent.Size,
-                            Comment = manager.Torrent.Comment,
-                            Timeout = false
-                        });
-
+                    var utName = manager.Torrent.Name;
+                    var utComment = manager.Torrent.Comment;
                     var elapsedms = (DateTime.Now - manager.StartTime).Milliseconds + (DateTime.Now - manager.StartTime).Seconds * 1000;
 
                     Console.WriteLine (
-                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {elapsedms:n0}ms - * [ {Magenta (manager.Torrent.Name)} ] * -");
+                        $"DownloadAsync()  Metadata Received {Green (hashId)} in {elapsedms:n0}ms - * [ {Magenta (utName)} ] * -");
 
                     avgResponseTime.Add (elapsedms);
 
@@ -81,10 +75,19 @@ namespace MetadataDownloader
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} already downloaded [ {fName} ] {fLen:n0}");
 
-                        } else if (!fileNameManager.IsMostlyLatin (manager.Torrent.Name)) {
+                        } else if (!fileNameManager.IsMostlyLatin (utName)) {
                             skippedCount++;
 
                             Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} non latin file [ {fName} ] {fLen:n0}");
+
+                        } else if (fileNameManager.ContainsBanWord (utName, utComment, fName, banWords)) {
+                            skippedCount++;
+
+                            Console.WriteLine ($"DownloadAsync()  Skipping torrent  {Yellow (hashId)} ban word! [ {fName} ] {fLen:n0}");
+
+                            // don't want those on the DB!
+                            utName = "--------";
+                            utComment = "--------";
 
                         } else {
                             downloadedCount++;
@@ -97,6 +100,16 @@ namespace MetadataDownloader
                             File.Copy (manager.MetadataPath, c.TORRENT_OUTPUT_PATH + subCat + @"\" + targetFName + ".torrent");
 
                         }
+
+                        dao.UpdateHashId (
+                            new MTorr () {
+                                HashId = hashId,
+                                Name = utName,
+                                Length = manager.Torrent.Size,
+                                Comment = utComment,
+                                Timeout = false
+                            });
+
                     } catch (Exception ex) {
                         Console.Error.WriteLine ($"DownloadAsync()  Exception thrown  {Red (hashId)} {Red (ex.Message)}");
                     }

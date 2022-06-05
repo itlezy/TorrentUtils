@@ -1,10 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ILCommon
 {
     public class FileNameManager
     {
+        public bool ContainsBanWord (string utName, string utComment, string fName, IEnumerable<string> banWords)
+        {
+            foreach (var banWord in banWords) {
+                if (
+                    fName.IndexOf (banWord, StringComparison.InvariantCultureIgnoreCase) >= 0 ||
+                    utName.IndexOf (banWord, StringComparison.InvariantCultureIgnoreCase) >= 0 ||
+                    utComment.IndexOf (banWord, StringComparison.InvariantCultureIgnoreCase) >= 0) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public string NormalizeFileName (string originalName)
         {
             return originalName

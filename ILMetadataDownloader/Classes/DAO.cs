@@ -30,7 +30,7 @@ namespace MetadataDownloader.Data
                 db.Execute (
                     "CREATE INDEX \"MTorr_Processed\" ON \"MTorr\" (\"Processed\" ASC)"
                 );
-                
+
                 db.Execute (
                     "CREATE UNIQUE INDEX \"MTorrLog_UQ_SeenAt_HashId\" on \"MTorrLog\" (\"SeenAt\" DESC, \"HashId\" ASC)"
                 );
@@ -46,9 +46,27 @@ namespace MetadataDownloader.Data
             }
         }
 
-        public void CleanBanWords ()
+        public void CleanBanWords (string inputDir)
         {
+            // TODO Move it to appropriate class..
             var banWords = File.ReadAllLines (c.BAN_WORDS_FILE).Where (m => !string.IsNullOrWhiteSpace (m));
+
+            var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
+
+            for (var i = 0; i < allFiles.Length; i++) {
+                try {
+                    var file = new FileInfo (allFiles[i]);
+
+                    foreach (var banWord in banWords) {
+
+                        if (file.Name.ToLower ().Contains (banWord)) {
+                            Console.Error.WriteLine ("Found ban file :: DEL \"{0}\"", file.FullName);
+                        }
+                    }
+                } catch (System.IO.FileNotFoundException ex) {
+                    Console.Error.WriteLine ("File name too long {0}", ex.Message);
+                }
+            }
 
             using (var db = new SQLiteConnection (c.SDB_URL)) {
                 foreach (var banWord in banWords) {
@@ -116,8 +134,6 @@ namespace MetadataDownloader.Data
 
         public string GetNextHashId ()
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew ();
-
             using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY IsAnnounce DESC, CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
@@ -137,13 +153,9 @@ namespace MetadataDownloader.Data
                 if (c.DEBUG_MODE)
                     Console.WriteLine ("GetNextHashId()  Found Torrent {0}, updated {1} record", mTorr.HashId, upds);
 
-
-                watch.Stop ();
-                Console.WriteLine ("ms {0}", watch.ElapsedMilliseconds);
-
                 return mTorr.HashId;
             }
-            
+
         }
 
         public bool HasBeenDownloaded (MDownloadedTorr mDownloadedTorr)
