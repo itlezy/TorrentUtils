@@ -28,6 +28,10 @@ namespace MetadataDownloader.Data
                 );
 
                 db.Execute (
+                    "CREATE INDEX \"MTorr_Processed\" ON \"MTorr\" (\"Processed\" ASC)"
+                );
+                
+                db.Execute (
                     "CREATE UNIQUE INDEX \"MTorrLog_UQ_SeenAt_HashId\" on \"MTorrLog\" (\"SeenAt\" DESC, \"HashId\" ASC)"
                 );
 
@@ -112,6 +116,8 @@ namespace MetadataDownloader.Data
 
         public string GetNextHashId ()
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew ();
+
             using (var db = new SQLiteConnection (c.SDB_URL)) {
                 var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY IsAnnounce DESC, CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
@@ -131,8 +137,13 @@ namespace MetadataDownloader.Data
                 if (c.DEBUG_MODE)
                     Console.WriteLine ("GetNextHashId()  Found Torrent {0}, updated {1} record", mTorr.HashId, upds);
 
+
+                watch.Stop ();
+                Console.WriteLine ("ms {0}", watch.ElapsedMilliseconds);
+
                 return mTorr.HashId;
             }
+            
         }
 
         public bool HasBeenDownloaded (MDownloadedTorr mDownloadedTorr)
