@@ -19,13 +19,14 @@ namespace ArchiveTorrents
             }
 
             using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
-                var ins = db.Execute (
-                    "CREATE UNIQUE INDEX \"MTorrFileSummary_UQ\" ON \"MDownloadedTorr\" ( \"FileName\"    ASC, \"Length\"    ASC )"
+
+                db.Execute (
+                "CREATE UNIQUE INDEX \"MDownloadedFile_UQ_FileName_Length\" on \"MDownloadedFile\" (\"FileName\" ASC, \"Length\" ASC)"
                 );
 
             }
-
         }
+
         public int LoadDownloadedFiles (List<MDownloadedFile> files)
         {
             using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {

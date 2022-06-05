@@ -9,11 +9,17 @@ namespace ILCommon.Data.Model
     /// </summary>
     public class MDownloadedTorr
     {
-        [PrimaryKey, MaxLength (256)]
+        [PrimaryKey, MaxLength (64)]
         public string HashId { get; set; }
 
+        /// <summary>
+        /// Torrent name extracted from metadata
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Length reported by torrent metadata
+        /// </summary>
         public long Length { get; set; }
 
     }
@@ -23,9 +29,10 @@ namespace ILCommon.Data.Model
     /// </summary>
     public class MDownloadedFile
     {
-        [PrimaryKey, MaxLength (512)]
+        [MaxLength (512), NotNull]
         public string FileName { get; set; }
 
+        [NotNull]
         public long Length { get; set; }
 
     }
@@ -35,12 +42,13 @@ namespace ILCommon.Data.Model
     /// </summary>
     public class MTorrLog
     {
-        [PrimaryKey, AutoIncrement]
-        public int Id { get; set; }
-        [Indexed]
+        [NotNull]
         public DateTime SeenAt { get; set; }
-        [Indexed]
+
+        [NotNull, MaxLength (64)]
         public string HashId { get; set; }
+
+        public bool IsAnnounce { get; set; }
     }
 
     /// <summary>
@@ -48,22 +56,28 @@ namespace ILCommon.Data.Model
     /// </summary>
     public class MTorr
     {
-        [PrimaryKey, MaxLength (40)]
+        [PrimaryKey, MaxLength (64)]
         public string HashId { get; set; }
 
         public string Name { get; set; }
+
         public string Comment { get; set; }
 
-        [Indexed]
         public int CountSeen { get; set; }
+
+        public DateTime LastSeen { get; set; }
+
         public long Length { get; set; }
 
         public bool Processed { get; set; }
+
         public bool Timeout { get; set; }
+
         public bool Downloaded { get; set; }
 
+        public bool IsAnnounce { get; set; }
+
         public DateTime DownloadedTime { get; set; }
-        public DateTime LastSeen { get; set; }
 
         public DateTime ProcessedTime { get; set; }
 

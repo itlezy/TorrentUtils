@@ -17,14 +17,26 @@ namespace MetadataDownloader.Data
         public void CreateTables ()
         {
             using (var db = new SQLiteConnection (c.SDB_URL)) {
-                db.CreateTable<MTorrLog> ();
                 db.CreateTable<MTorr> ();
-
+                db.CreateTable<MTorrLog> ();
             }
 
             using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var ins = db.Execute (
-                    "CREATE UNIQUE INDEX \"MTorrLog_UQ\" ON \"MTorrLog\" ( \"HashId\"    ASC, \"SeenAt\"    ASC )"
+
+                db.Execute (
+                    "CREATE INDEX \"MTorr_CountSeen_LastSeen\" on \"MTorr\" (\"IsAnnounce\" DESC, \"CountSeen\" DESC, \"LastSeen\" DESC, \"Processed\" DESC)"
+                );
+
+                db.Execute (
+                    "CREATE UNIQUE INDEX \"MTorrLog_UQ_SeenAt_HashId\" on \"MTorrLog\" (\"SeenAt\" DESC, \"HashId\" ASC)"
+                );
+
+                db.Execute (
+                    "CREATE INDEX \"MTorrLog_HashId\" ON \"MTorrLog\" ( \"HashId\" ASC)"
+                );
+
+                db.Execute (
+                    "CREATE INDEX \"MTorrLog_SeenAt\" ON \"MTorrLog\" ( \"SeenAt\" DESC)"
                 );
 
             }
@@ -101,7 +113,7 @@ namespace MetadataDownloader.Data
         public string GetNextHashId ()
         {
             using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY CountSeen DESC, LastSeen DESC LIMIT 1";
+                var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY IsAnnounce DESC, CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
 
                 if (c.DEBUG_MODE)
@@ -180,9 +192,12 @@ namespace MetadataDownloader.Data
                     var dateSeen = DateTime.Parse (segs[1]);
                     var hashId = segs[4].Substring (1, 40).ToLower ();
 
+                    // (I) 2022-05-31T20:09:38 - handleDHTAnnounceAlert "1234567898765434567540000000000000000000"               
+
                     mTorrs.Add (new MTorrLog () {
                         HashId = hashId,
-                        SeenAt = dateSeen
+                        SeenAt = dateSeen,
+                        IsAnnounce = line.Contains ("handleDHTAnnounceAlert")
                     });
 
                 } catch (Exception ex) {
@@ -205,9 +220,9 @@ namespace MetadataDownloader.Data
             Console.WriteLine ("Insert new records to Tor Table..");
 
             using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var ins = db.Execute (@"INSERT INTO MTorr (HashId, CountSeen, LastSeen, Processed)
+                var ins = db.Execute (@"INSERT INTO MTorr (HashId, IsAnnounce, CountSeen, LastSeen, Processed)
                                         SELECT DISTINCT 
-                                          HashId, COUNT(HashId) AS CountSeen, MAX(SeenAt) AS LastSeen, 0 as Processed
+                                          HashId, IsAnnounce, COUNT(HashId) AS CountSeen, MAX(SeenAt) AS LastSeen, 0 as Processed
                                         FROM
                                           MTorrLog
                                         WHERE

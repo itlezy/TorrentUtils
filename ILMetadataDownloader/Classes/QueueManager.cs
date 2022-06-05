@@ -91,11 +91,10 @@ namespace MetadataDownloader
                             lastDowloaded = DateTime.Now;
 
                             var subCat = fileNameManager.GetSubCat (manager.Torrent.Name);
+                            var targetFName = "G" + (10 * Math.Round ((double) fLen / (1024 * 1024 * 1024), 1)).ToString ().PadLeft (3, '0') + "_" +
+                                fileNameManager.SafeName (manager.Torrent.Name);
 
-                            File.Copy (manager.MetadataPath,
-                                c.TORRENT_OUTPUT_PATH + subCat + @"\" +
-                                "G" + (10 * Math.Round ((double) fLen / (1024 * 1024 * 1024), 1)).ToString ().PadLeft (3, '0') + "_" +
-                                fileNameManager.SafeName (manager.Torrent.Name) + ".torrent");
+                            File.Copy (manager.MetadataPath, c.TORRENT_OUTPUT_PATH + subCat + @"\" + targetFName + ".torrent");
 
                         }
                     } catch (Exception ex) {

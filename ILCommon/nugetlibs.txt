@@ -1,3 +1,4 @@
 ﻿dotnet add package CommandLineParser --version 2.9.1
 dotnet add package SQLitePCLRaw.bundle_e_sqlite3 --version 2.1.0
 dotnet add package sqlite-net-pcl --version 1.8.116
+dotnet add package Microsoft.Data.Sqlite.Core --version 6.0.5
