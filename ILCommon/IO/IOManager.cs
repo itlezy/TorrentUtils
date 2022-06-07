@@ -72,6 +72,32 @@ namespace ILCommon.IO
             return r;
         }
 
+        /// <summary>
+        /// Search if any file contains ban words and prints out the command to delete them
+        /// </summary>
+        /// <param name="inputDir"></param>
+        public void CleanBanWords (string inputDir)
+        {
+            var banWords = File.ReadAllLines (c.BAN_WORDS_FILE).Where (m => !string.IsNullOrWhiteSpace (m));
+
+            var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
+
+            for (var i = 0; i < allFiles.Length; i++) {
+                try {
+                    var file = new FileInfo (allFiles[i]);
+
+                    foreach (var banWord in banWords) {
+
+                        if (file.Name.IndexOf (banWord, StringComparison.InvariantCultureIgnoreCase) >= 0) {
+                            Console.Error.WriteLine ("Found ban file :: DEL \"{0}\"", file.FullName);
+                        }
+                    }
+                } catch (System.IO.FileNotFoundException ex) {
+                    Console.Error.WriteLine ("File name too long {0}", ex.Message);
+                }
+            }
+        }
+
         public void CleanDirs (string[] dirs)
         {
             foreach (var dir in dirs) {

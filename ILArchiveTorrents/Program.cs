@@ -21,6 +21,8 @@ namespace ArchiveTorrents
                         .WithParsed (RunOptions)
                         .WithNotParsed (HandleParseError);
 
+                } else {
+                    Console.Error.WriteLine ("Application running, please check .lck file. Exiting..");
                 }
 
             } finally {

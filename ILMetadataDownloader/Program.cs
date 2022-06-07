@@ -25,6 +25,8 @@ namespace MetadataDownloader
                         .WithParsed (RunOptions)
                         .WithNotParsed (HandleParseError);
 
+                } else {
+                    Console.Error.WriteLine ("Application running, please check .lck file. Exiting..");
                 }
 
             } finally {
@@ -40,7 +42,7 @@ namespace MetadataDownloader
             } else if (opts.LoadHashes && File.Exists (opts.InputLogFile)) {
 
                 new DAO ().LoadHashesFromFile (opts.InputLogFile);
-            } else if (opts.LoadDownloadedTorrents && Directory.Exists (opts.InputDir)) {
+            } else if (opts.LoadDownloadedTorrents && !String.IsNullOrWhiteSpace (opts.InputDir) && Directory.Exists (opts.InputDir)) {
 
                 new QueueManager ().LoadDownloadedTorrents (opts.InputDir);
             } else if (opts.PrintStats) {
@@ -51,7 +53,11 @@ namespace MetadataDownloader
                 new TestManager ().RunTests ();
             } else if (opts.CleanBanWords) {
 
-                new DAO ().CleanBanWords (opts.InputDir);
+                new DAO ().CleanBanWords ();
+
+                if (!String.IsNullOrWhiteSpace (opts.InputDir) && Directory.Exists (opts.InputDir)) {
+                    new IOManager ().CleanBanWords (opts.InputDir);
+                }
             } else {
 
                 MetadataDownload ();

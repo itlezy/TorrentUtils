@@ -46,27 +46,9 @@ namespace MetadataDownloader.Data
             }
         }
 
-        public void CleanBanWords (string inputDir)
+        public void CleanBanWords ()
         {
-            // TODO Move it to appropriate class..
             var banWords = File.ReadAllLines (c.BAN_WORDS_FILE).Where (m => !string.IsNullOrWhiteSpace (m));
-
-            var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
-
-            for (var i = 0; i < allFiles.Length; i++) {
-                try {
-                    var file = new FileInfo (allFiles[i]);
-
-                    foreach (var banWord in banWords) {
-
-                        if (file.Name.ToLower ().Contains (banWord)) {
-                            Console.Error.WriteLine ("Found ban file :: DEL \"{0}\"", file.FullName);
-                        }
-                    }
-                } catch (System.IO.FileNotFoundException ex) {
-                    Console.Error.WriteLine ("File name too long {0}", ex.Message);
-                }
-            }
 
             using (var db = new SQLiteConnection (c.SDB_URL)) {
                 foreach (var banWord in banWords) {

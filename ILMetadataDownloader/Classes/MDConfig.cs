@@ -15,10 +15,5 @@ namespace MetadataDownloader
         public readonly string TMP_SAVE_DIR = ConfigurationManager.AppSettings["TMP_SAVE_DIR"];
         public readonly string MAGNET_PREFIX = ConfigurationManager.AppSettings["MAGNET_PREFIX"];
 
-        /// <summary>
-        /// File containing ban words to avoid when downloading metadata, one word per line
-        /// </summary>
-        public string BAN_WORDS_FILE = ConfigurationManager.AppSettings["BAN_WORDS_FILE"];
-
     }
 }

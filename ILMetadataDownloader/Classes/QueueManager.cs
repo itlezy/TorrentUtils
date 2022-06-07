@@ -37,7 +37,7 @@ namespace MetadataDownloader
             if (MagnetLink.TryParse (c.MAGNET_PREFIX + hash, out MagnetLink magnetLink)) {
 
                 var manager = await engine.AddAsync (magnetLink, c.TMP_SAVE_DIR);
-                var hashId = magnetLink.InfoHashes.V1.ToHex ().ToLower ();
+                var hashId = magnetLink.InfoHashes.V1OrV2.ToHex ().ToLower ();
 
                 Console.WriteLine (
                     $"DownloadAsync()  Adding   torrent  {Green (hashId)}");
@@ -181,24 +181,32 @@ namespace MetadataDownloader
                     DownloadAsync (hash, engine, token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 } else {
+                    if (engine == null) { throw new ApplicationException ("Engine is null, how?"); }
+                    if (engine.Torrents == null) { throw new ApplicationException ("Engine Torrents are null, how?"); }
+
                     // FIFO logic, just remove the oldest
                     var torrent = engine.Torrents.First ();
-                    var hashId = torrent.InfoHashes.V1.ToHex ().ToLower ();
 
-                    Console.WriteLine ($"MainLoop()       Removing torrent  {Red (hashId)}");
+                    if (torrent != null) {
+                        var hashId = torrent.InfoHashes.V1OrV2.ToHex ().ToLower ();
 
-                    dao.UpdateHashId (
-                       new MTorr () {
-                           HashId = hashId,
-                           Name = null,
-                           Length = 0,
-                           Comment = null,
-                           Timeout = true
-                       });
+                        Console.WriteLine ($"MainLoop()       Removing torrent  {Red (hashId)}");
 
-                    timeoutCount++;
+                        dao.UpdateHashId (
+                           new MTorr () {
+                               HashId = hashId,
+                               Name = null,
+                               Length = 0,
+                               Comment = null,
+                               Timeout = true
+                           });
 
-                    await torrent.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
+                        timeoutCount++;
+
+                        await torrent.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
+                    } else {
+                        Console.Error.WriteLine ("MainLoop()       Torrents.First() is null, retrying at next loop iteration..");
+                    }
 
                     try {
                         await engine.RemoveAsync (torrent, RemoveMode.CacheDataAndDownloadedData);

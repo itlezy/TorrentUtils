@@ -27,10 +27,12 @@ namespace ILCommon
                 .Replace ("-[rarbg]", "")
                 .Replace ("-[rbg.to]", "")
                 .Replace ("-[rbg]", "")
+                .Replace ("-[rartv]", "")
 
                 .Replace ("[rarbg.to]", "")
                 .Replace ("[rarbg]", "")
                 .Replace ("[rbg.to]", "")
+                .Replace ("[rartv]", "")
                 .Replace ("[rbg]", "");
         }
 
