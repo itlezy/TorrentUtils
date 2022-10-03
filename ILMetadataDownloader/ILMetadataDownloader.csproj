@@ -90,14 +90,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent.Client\MonoTorrent.Client.csproj">
-      <Project>{411a9e0e-fdc6-4e25-828a-0c2cd1cd96f8}</Project>
-      <Name>MonoTorrent.Client</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\monotorrent\src\MonoTorrent\MonoTorrent.csproj">
-      <Project>{fa1e561b-2882-46b4-b2fe-677cababdefb}</Project>
-      <Name>MonoTorrent</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ILCommon\ILCommon.csproj">
       <Project>{462C9AAA-1F59-4D6B-8E27-4122A6158B5A}</Project>
       <Name>ILCommon</Name>
@@ -106,6 +98,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Crayon" Version="2.0.64" />
+    <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0010" />
     <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.0" />
   </ItemGroup>

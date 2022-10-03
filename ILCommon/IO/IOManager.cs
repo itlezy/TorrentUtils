@@ -25,9 +25,15 @@ namespace ILCommon.IO
             }
         }
 
-        public ListDownloadedTorrentsRet ListDownloadedTorrents (string inputDir)
+        public ListDownloadedTorrentsRet ListDownloadedTorrents (string inputDir, string fileExtension)
         {
-            var allFiles = Directory.GetFiles (inputDir, "*.torrent", SearchOption.AllDirectories);
+            string fExt = string.IsNullOrWhiteSpace (fileExtension) ? c.TORR_EXT_WILDCARD : fileExtension;
+
+            var allFiles = Directory.GetFiles (inputDir, fExt, SearchOption.AllDirectories);
+
+            if (c.DEBUG_MODE)
+                Console.WriteLine ("Found {0} files in dir '{1}', ext '{2}'", allFiles.Length, inputDir, fExt);
+
             var r = new ListDownloadedTorrentsRet ();
 
             for (var i = 0; i < allFiles.Length; i++) {

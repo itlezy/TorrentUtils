@@ -21,5 +21,7 @@ namespace ILCommon.Config
 
         public readonly bool DEBUG_MODE = bool.Parse (ConfigurationManager.AppSettings["DEBUG_MODE"]);
 
+        public readonly string TORR_EXT_WILDCARD = ConfigurationManager.AppSettings["TORR_EXT_WILDCARD"];
+
     }
 }

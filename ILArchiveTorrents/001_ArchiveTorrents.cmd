@@ -9,6 +9,7 @@ REM ArchiveTorrents.exe -c
 ECHO Update torrent status based on previously downloaded torrents
 ArchiveTorrents.exe -t -d x:\torr_archived
 ArchiveTorrents.exe -t -d "%LOCALAPPDATA%\qBittorrent\BT_Backup"
+ArchiveTorrents.exe -t -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
 
 ECHO Update downloaded files status based on previously downloaded files
 ArchiveTorrents.exe -f -d x:\torr_OK

@@ -17,6 +17,8 @@ namespace ArchiveTorrents
         [Option ('d', "inputdir", Required = false, HelpText = "Input directory to search for files")]
         public string InputDir { get; set; }
 
+        [Option ('x', "extension", Required = false, HelpText = "Process this extension from the Input Dir")]
+        public string FileExtension { get; set; }
 
     }
 }

@@ -185,10 +185,10 @@ namespace ArchiveTorrents
         /// Loads the table of downloaded torrents (hashId) *and* the table of downloaded files, based on the torrent metadata
         /// </summary>
         /// <param name="inputDir"></param>
-        public void LoadDownloadedTorrents (string inputDir)
+        public void LoadDownloadedTorrents (string inputDir, string fileExtension)
         {
             var ins = 0;
-            var ff = new IOManager ().ListDownloadedTorrents (inputDir);
+            var ff = new IOManager ().ListDownloadedTorrents (inputDir, fileExtension);
 
             ins = dao.LoadDownloadedTorrents (ff.MDownloadedTorrs);
 
