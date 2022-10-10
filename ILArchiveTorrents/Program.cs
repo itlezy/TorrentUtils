@@ -51,7 +51,16 @@ namespace ArchiveTorrents
                 else
                     Console.Error.WriteLine ("Directory not found '{0}'", opts.InputDir);
 
-            } else {
+            } else if (opts.SyncDownloadedTorrents)
+            {
+
+                if (Directory.Exists(opts.InputDir))
+                    new ArchiveManager().SyncDownloadedTorrents(opts.InputDir, opts.FileExtension);
+                else
+                    Console.Error.WriteLine("Directory not found '{0}'", opts.InputDir);
+
+            }
+            else {
 
                 new ArchiveManager ().RemDupsAndArchive ();
             }

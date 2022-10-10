@@ -199,5 +199,38 @@ namespace ArchiveTorrents
             Console.WriteLine ("Loaded \t{0:n0} MDownloadedFiles records out of \t{1:n0} ..", ins, ff.MDownloadedFiles.Count);
 
         }
+
+        /// <summary>
+        /// Sync torrents being in use by a BT client to the archive directory, so to ensure to have all copies archived
+        /// </summary>
+        /// <param name="inputDir"></param>
+        public void SyncDownloadedTorrents(string inputDir, string fileExtension)
+        {
+            var ff = new IOManager().ListDownloadedTorrents(inputDir, fileExtension);
+
+            foreach (var f in ff.MDownloadedTorrs)
+            {
+                var safeName = new FileNameManager().SafeName(f.Name);
+                var targetName = c.TORR_ARCHIVE_DIR + safeName + ".torrent";
+
+                if (!File.Exists(targetName)
+                    &&
+                    // also check if there's a match of the safeName (which is stripped of web-site markers)
+                    Directory.GetFiles(c.TORR_ARCHIVE_DIR, safeName + c.TORR_EXT_WILDCARD, SearchOption.AllDirectories).Length == 0)
+                {
+                    try
+                    {
+                        File.Copy(f.FullName, targetName);
+                        Console.WriteLine("Archiving Tor '{0}'", targetName);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine("Unable to copy file '{0}', to '{1}' - {2}", f.FullName, targetName, ex.Message);
+                    }
+
+                }
+            }
+
+        }
     }
 }

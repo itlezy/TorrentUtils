@@ -49,7 +49,8 @@ namespace ILCommon.IO
                                 Name = !string.IsNullOrWhiteSpace (torr.Name) ?
                                 new FileNameManager ().NormalizeFileName (torr.Name) :
                                 new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (file.Name)),
-                                Length = torr.Size
+                                Length = torr.Size,
+                                FullName = file.FullName
                             });
 
                             var fName = torr.Files.OrderByDescending (t => t.Length).First ().Path;

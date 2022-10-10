@@ -22,6 +22,9 @@ namespace ILCommon.Data.Model
         /// </summary>
         public long Length { get; set; }
 
+        [Ignore]
+        public string FullName { get; set; }
+
     }
 
     /// <summary>
