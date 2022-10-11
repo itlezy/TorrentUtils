@@ -19,10 +19,15 @@ namespace ArchiveTorrents
         readonly ATConfig c = new ATConfig ();
         readonly DAO dao = new DAO ();
 
+        public void RemDupsAndArchive ()
+        {
+            RemDupsAndArchive (false);
+        }
+
         /// <summary>
         /// Removes duplicate torrent files by checking the tables of downloaded torrents, downloaded files and the directory archive just in case
         /// </summary>
-        public void RemDupsAndArchive ()
+        public void RemDupsAndArchive (bool skipCopyToIncoming)
         {
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], looking for duplicates..");
 
@@ -51,8 +56,8 @@ namespace ArchiveTorrents
                 var torrFile = new FileInfo (torrFiles[i]);
 
                 //Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }]");
-
-                var torrTorr = Torrent.Load (torrFile.FullName);
+                
+                var torrTorr = Torrent.Load (File.ReadAllBytes (torrFile.FullName));
                 var torrLargestFile = torrTorr.Files.OrderByDescending (t => t.Length).First ();
                 var torrHashId = torrTorr.InfoHashes.V1OrV2.ToHex ().ToLower ();
                 var normalizedName = new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name));
@@ -85,10 +90,11 @@ namespace ArchiveTorrents
                                 );
 
                     // copy to incoming folder of torrent client to pick up
-                    File.Copy (
-                                torrFile.FullName,
-                                c.TORR_INCOMING_DIR + torrFile.Name
-                                );
+                    if (!skipCopyToIncoming)
+                        File.Copy (
+                                    torrFile.FullName,
+                                    c.TORR_INCOMING_DIR + torrFile.Name
+                                    );
 
                     // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
                     File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
@@ -141,7 +147,7 @@ namespace ArchiveTorrents
                 } else {
                     Console.WriteLine ($"Archiving torrent [{ Green (torrHashFile.Name) }]");
 
-                    File.AppendAllLines (c.TORR_INPUT_DIR + "\\dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new string[] { torrHashId });
+                    File.AppendAllLines (c.TORR_INPUT_DIR + Path.DirectorySeparator + "dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new string[] { torrHashId });
 
                     // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
                     File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
@@ -164,9 +170,6 @@ namespace ArchiveTorrents
 
             Console.WriteLine ();
             Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
-
-            //Thread.Sleep (4000);
-            Console.ReadLine ();
         }
 
         /// <summary>
@@ -211,22 +214,22 @@ namespace ArchiveTorrents
 
             foreach (var f in ff.MDownloadedTorrs)
             {
-                var safeName = new FileNameManager().SafeName(f.Name);
-                var targetName = c.TORR_ARCHIVE_DIR + safeName + ".torrent";
+                var safeName = new FileNameManager().SafeName(f.Name).Replace(".torrent", "");
+                var targetName = c.TORR_INPUT_DIR + Path.DirectorySeparator + safeName + ".torrent";
 
-                Console.WriteLine ("Checking file '{0}' '{1}'", f.FullName, targetName);
+                Console.WriteLine ($"Checking file     [{ Magenta (f.FullName) }]\n             >    [{ Red (targetName) }]");
 
                 if (!File.Exists(targetName)
                     &&
                     // also check if there's a match of the safeName (which is stripped of web-site markers)
-                    Directory.GetFiles(c.TORR_ARCHIVE_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.AllDirectories).Length == 0)
+                    Directory.GetFiles(c.TORR_INPUT_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.TopDirectoryOnly).Length == 0)
                 {
                     try
                     {
                         File.Copy(f.FullName, targetName);
-                        Console.WriteLine("Archiving Tor '{0}'", targetName);
-                    }
-                    catch (Exception ex)
+                        Console.WriteLine ($"Copying to        [{ Green (targetName) }]\n");
+
+                    } catch (Exception ex)
                     {
                         Console.Error.WriteLine("Unable to copy file '{0}', to '{1}' - {2}", f.FullName, targetName, ex.Message);
                     }
@@ -234,6 +237,7 @@ namespace ArchiveTorrents
                 }
             }
 
+            RemDupsAndArchive (true);
         }
     }
 }
