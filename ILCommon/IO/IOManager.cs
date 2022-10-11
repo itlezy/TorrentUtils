@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+
+using Alphaleonis.Win32.Filesystem;
 
 using ILCommon.Data.Model;
 
@@ -29,7 +30,7 @@ namespace ILCommon.IO
         {
             string fExt = string.IsNullOrWhiteSpace (fileExtension) ? c.TORR_EXT_WILDCARD : fileExtension;
 
-            var allFiles = Directory.GetFiles (inputDir, fExt, SearchOption.AllDirectories);
+            var allFiles = Directory.GetFiles (inputDir, fExt, System.IO.SearchOption.AllDirectories);
 
             if (c.DEBUG_MODE)
                 Console.WriteLine ("Found {0} files in dir '{1}', ext '{2}'", allFiles.Length, inputDir, fExt);
@@ -87,7 +88,7 @@ namespace ILCommon.IO
         {
             var banWords = File.ReadAllLines (c.BAN_WORDS_FILE).Where (m => !string.IsNullOrWhiteSpace (m));
 
-            var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
+            var allFiles = Directory.GetFiles (inputDir, "*.*", System.IO.SearchOption.AllDirectories);
 
             for (var i = 0; i < allFiles.Length; i++) {
                 try {
@@ -125,7 +126,7 @@ namespace ILCommon.IO
             if (c.DEBUG_MODE)
                 Console.Error.WriteLine ($"Processing Input Directory [{inputDir}], looking for files gt than 10Mb..");
 
-            var allFiles = Directory.GetFiles (inputDir, "*.*", SearchOption.AllDirectories);
+            var allFiles = Directory.GetFiles (inputDir, "*.*", System.IO.SearchOption.AllDirectories);
             var mFiles = new List<MDownloadedFile> ();
 
             for (var i = 0; i < allFiles.Length; i++) {

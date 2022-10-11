@@ -235,7 +235,7 @@ namespace MetadataDownloader
         /// <param name="inputDir"></param>
         public void LoadDownloadedTorrents (string inputDir)
         {
-            var ff = new IOManager ().ListDownloadedTorrents (inputDir);
+            var ff = new IOManager ().ListDownloadedTorrents (inputDir, c.TORR_EXT_WILDCARD);
             var mf = new List<MTorr> ();
 
             foreach (var f in ff.MDownloadedTorrs) {

@@ -96,6 +96,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AlphaFS" Version="2.2.6" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Crayon" Version="2.0.64" />
     <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0010" />

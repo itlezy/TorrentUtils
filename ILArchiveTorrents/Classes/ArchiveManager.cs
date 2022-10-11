@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+
+using Alphaleonis.Win32.Filesystem;
 
 using ILCommon;
 using ILCommon.Data.Model;
@@ -213,10 +214,12 @@ namespace ArchiveTorrents
                 var safeName = new FileNameManager().SafeName(f.Name);
                 var targetName = c.TORR_ARCHIVE_DIR + safeName + ".torrent";
 
+                Console.WriteLine ("Checking file '{0}' '{1}'", f.FullName, targetName);
+
                 if (!File.Exists(targetName)
                     &&
                     // also check if there's a match of the safeName (which is stripped of web-site markers)
-                    Directory.GetFiles(c.TORR_ARCHIVE_DIR, safeName + c.TORR_EXT_WILDCARD, SearchOption.AllDirectories).Length == 0)
+                    Directory.GetFiles(c.TORR_ARCHIVE_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.AllDirectories).Length == 0)
                 {
                     try
                     {

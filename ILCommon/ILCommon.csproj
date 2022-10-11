@@ -52,6 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AlphaFS" Version="2.2.6" />
     <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0010" />
     <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
     <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
