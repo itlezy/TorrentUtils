@@ -11,7 +11,11 @@ namespace ArchiveTorrents
         public readonly string TORR_ARCHIVE_REG = ConfigurationManager.AppSettings["TORR_ARCHIVE_REG"];
         public readonly string TORR_ARCHIVE_FILES_REG = ConfigurationManager.AppSettings["TORR_ARCHIVE_FILES_REG"];
         public readonly string TORR_INCOMING_DIR = ConfigurationManager.AppSettings["TORR_INCOMING_DIR"];
-        public readonly string TORR_INPUT_DIR = Environment.GetFolderPath (Environment.SpecialFolder.UserProfile) + @"\Downloads";
+
+        public readonly string TORR_INPUT_DIR =
+            Alphaleonis.Win32.Filesystem.Directory.Exists (ConfigurationManager.AppSettings["TORR_INPUT_DIR"]) ?
+            ConfigurationManager.AppSettings["TORR_INPUT_DIR"] :
+            Environment.GetFolderPath (Environment.SpecialFolder.UserProfile) + @"\Downloads";
 
     }
 }

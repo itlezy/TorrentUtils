@@ -2,10 +2,12 @@
 
 CD /D %~dp0
 
-REM ArchiveTorrents.exe -c
+ArchiveTorrents.exe
 
-ECHO Update torrent status based on previously downloaded torrents
-ArchiveTorrents.exe -t -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
+PAUSE
+
+CD /D %~dp0
+
 ECHO Archive torrens currently processed by BT client, if needed
 ArchiveTorrents.exe -s -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
 
