@@ -14,6 +14,9 @@ namespace ArchiveTorrents
         [Option ('t', "loadtorrents", Required = false, HelpText = "Load downloaded torrents to DB")]
         public bool LoadDownloadedTorrents { get; set; }
 
+        [Option ('k', "skipcopy", Required = false, HelpText = "Skip Copying torrents to Incoming Dir of BT Client")]
+        public bool SkipCopyTorrents { get; set; }
+
         [Option('s', "synctorrents", Required = false, HelpText = "Sync Torrents from BT Client to Archive Dir")]
         public bool SyncDownloadedTorrents { get; set; }
 

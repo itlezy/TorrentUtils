@@ -19,15 +19,23 @@ namespace ArchiveTorrents
         readonly ATConfig c = new ATConfig ();
         readonly DAO dao = new DAO ();
 
-        public void RemDupsAndArchive ()
-        {
-            RemDupsAndArchive (false);
-        }
-
         /// <summary>
         /// Removes duplicate torrent files by checking the tables of downloaded torrents, downloaded files and the directory archive just in case
         /// </summary>
         public void RemDupsAndArchive (bool skipCopyToIncoming)
+        {
+            int duplicatesCount = 0, copiedCount = 0, totalFiles = 0;
+
+            RemDupsAndArchiveTorrents (skipCopyToIncoming, ref duplicatesCount, ref copiedCount, ref totalFiles);
+
+            RemDupsAndArchiveHashes (ref duplicatesCount, ref copiedCount, ref totalFiles);
+
+            Console.WriteLine ();
+
+            Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
+        }
+
+        private void RemDupsAndArchiveTorrents (bool skipCopyToIncoming, ref int duplicatesCount, ref int copiedCount, ref int totalFiles)
         {
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], looking for duplicates..");
 
@@ -48,9 +56,7 @@ namespace ArchiveTorrents
 
             // find actual torrent files
             var torrFiles = Directory.GetFiles (c.TORR_INPUT_DIR, c.TORR_EXT_WILDCARD);
-            var duplicatesCount = 0;
-            var copiedCount = 0;
-            var totalFiles = torrFiles.Length;
+            totalFiles = torrFiles.Length;
 
             for (var i = 0; i < totalFiles; i++) {
                 var torrFile = new FileInfo (torrFiles[i]);
@@ -71,8 +77,6 @@ namespace ArchiveTorrents
 
                 Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }], hashId { Green (torrHashId) }, total size { Green (torrTorr.Size.ToString ("n0")) }");
                 Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString ("n0")) } ");
-
-                // todo if I'm in skip mode, I can just update the table
 
                 if (dao.HasBeenDownloaded (torrHashId)) {
                     // remove duplicate if the same hashId was already in the list
@@ -96,17 +100,19 @@ namespace ArchiveTorrents
 
                 // execute all the time, but..
                 {
-                    Console.WriteLine ($"Archiving torrent [{ Green (torrFile.Name) }]");
-
-                    // archive as copy
-                    File.Copy (
-                                torrFile.FullName,
-                                c.TORR_ARCHIVE_DIR + torrFile.Name,
-                                true
-                                );
+                    if (!File.Exists (c.TORR_ARCHIVE_DIR + torrFile.Name)) {
+                        // archive as copy
+                        File.Copy (
+                                    torrFile.FullName,
+                                    c.TORR_ARCHIVE_DIR + torrFile.Name,
+                                    true
+                                    );
+                    }
 
                     // copy to incoming folder of torrent client to pick up
                     if (!skipCopyToIncoming && !isDuplicate) {
+                        Console.WriteLine ($"Archiving torrent [{ Green (torrFile.Name) }]");
+
                         File.Copy (
                                     torrFile.FullName,
                                     c.TORR_INCOMING_DIR + torrFile.Name,
@@ -117,6 +123,7 @@ namespace ArchiveTorrents
                     }
 
                     if (!isDuplicate) {
+                        // legacy
                         // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
                         File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
                         // add the largest file name and size to the list, so to be sure we can detect duplicates even if the file-name differs or it's the same file in different torrent files
@@ -143,7 +150,10 @@ namespace ArchiveTorrents
                 File.Delete (torrFile.FullName);
                 Console.WriteLine ();
             }
+        }
 
+        private void RemDupsAndArchiveHashes (ref int duplicatesCount, ref int copiedCount, ref int totalFiles)
+        {
             // process hash files that are only hasId.torrhash
             Console.WriteLine ();
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], processing hash files..");
@@ -188,9 +198,6 @@ namespace ArchiveTorrents
                 File.Delete (torrHashFile.FullName);
                 Console.WriteLine ();
             }
-
-            Console.WriteLine ();
-            Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
         }
 
         /// <summary>
@@ -234,10 +241,11 @@ namespace ArchiveTorrents
             var ff = new IOManager ().ListDownloadedTorrents (inputDir, fileExtension);
 
             foreach (var f in ff.MDownloadedTorrs) {
+                // just use a platform specific safe name for the file system, the normalization will happen at the RemDupsAndArchive step
                 var safeName = new FileNameManager ().SafeName (f.Name).Replace (".torrent", "");
                 var targetName = c.TORR_INPUT_DIR + Path.DirectorySeparator + safeName + ".torrent";
 
-                Console.WriteLine ($"Checking file     [{ Magenta (f.FullName) }]\n             >    [{ Red (targetName) }]");
+                Console.WriteLine ($"Processing file   [{ Magenta (f.FullName) }]\n             >    [{ Red (targetName) }]");
 
                 if (!File.Exists (targetName)
                     &&
@@ -253,8 +261,6 @@ namespace ArchiveTorrents
 
                 }
             }
-
-            RemDupsAndArchive (true);
         }
     }
 }
