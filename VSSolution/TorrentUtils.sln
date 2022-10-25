@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILCommon", "..\ILCommon\ILC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILMetadataDownloader", "..\ILMetadataDownloader\ILMetadataDownloader.csproj", "{B551E281-6359-4B39-B1D7-2ECC25FDCE36}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILFilePacifier", "..\ILFilePacifier\ILFilePacifier.csproj", "{149D1DFC-9293-4BF4-B497-473EA88A591F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{B551E281-6359-4B39-B1D7-2ECC25FDCE36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B551E281-6359-4B39-B1D7-2ECC25FDCE36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B551E281-6359-4B39-B1D7-2ECC25FDCE36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{149D1DFC-9293-4BF4-B497-473EA88A591F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{149D1DFC-9293-4BF4-B497-473EA88A591F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{149D1DFC-9293-4BF4-B497-473EA88A591F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{149D1DFC-9293-4BF4-B497-473EA88A591F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

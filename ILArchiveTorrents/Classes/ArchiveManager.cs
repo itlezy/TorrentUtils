@@ -52,27 +52,38 @@ namespace ArchiveTorrents
             var copiedCount = 0;
             var totalFiles = torrFiles.Length;
 
-            for (var i = 0; i < torrFiles.Length; i++) {
+            for (var i = 0; i < totalFiles; i++) {
                 var torrFile = new FileInfo (torrFiles[i]);
 
-                //Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }]");
-                
-                var torrTorr = Torrent.Load (File.ReadAllBytes (torrFile.FullName));
+                Torrent torrTorr;
+                try {
+                    torrTorr = Torrent.Load (File.ReadAllBytes (torrFile.FullName));
+                } catch (Exception ex) {
+                    Console.Error.WriteLine ($"Invalid file      [{ Magenta (torrFile.Name) }] [ { Red (ex.Message) }]");
+                    File.Move (torrFile.FullName, torrFile.FullName + ".invalid");
+                    continue;
+                }
+
                 var torrLargestFile = torrTorr.Files.OrderByDescending (t => t.Length).First ();
                 var torrHashId = torrTorr.InfoHashes.V1OrV2.ToHex ().ToLower ();
                 var normalizedName = new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name));
+                var isDuplicate = false;
 
-                Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }], hashId { Green (torrHashId) }");
-                Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString("n0") ) } ");
+                Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }], hashId { Green (torrHashId) }, total size { Green (torrTorr.Size.ToString ("n0")) }");
+                Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString ("n0")) } ");
+
+                // todo if I'm in skip mode, I can just update the table
 
                 if (dao.HasBeenDownloaded (torrHashId)) {
                     // remove duplicate if the same hashId was already in the list
                     Console.WriteLine ($"Duplicate found L [{ Red (torrFile.Name) }], removing..");
                     duplicatesCount++;
+                    isDuplicate = true;
                 } else if (dao.HasBeenDownloaded (new MDownloadedFile () { FileName = torrLargestFile.Path, Length = torrLargestFile.Length })) {
                     // remove duplicate if the same file with the same exact length was already in the list
                     Console.WriteLine ($"Duplicate found R [{ Red (torrFile.Name) }], removing..");
                     duplicatesCount++;
+                    isDuplicate = true;
                 } else if (
                     Directory.GetFiles (c.TORR_ARCHIVE_DIR, normalizedName + c.TORR_EXT_WILDCARD).Length > 0 ||
                     Directory.GetFiles (c.TORR_ARCHIVE_DIR_OLD, normalizedName + c.TORR_EXT_WILDCARD).Length > 0
@@ -80,26 +91,37 @@ namespace ArchiveTorrents
                     // remove duplicate if the same torrent file exists (redundant really at this stage)
                     Console.WriteLine ($"Duplicate found F [{ Red (torrFile.Name) }], removing..");
                     duplicatesCount++;
-                } else {
+                    isDuplicate = true;
+                }
+
+                // execute all the time, but..
+                {
                     Console.WriteLine ($"Archiving torrent [{ Green (torrFile.Name) }]");
 
                     // archive as copy
                     File.Copy (
                                 torrFile.FullName,
-                                c.TORR_ARCHIVE_DIR + torrFile.Name
+                                c.TORR_ARCHIVE_DIR + torrFile.Name,
+                                true
                                 );
 
                     // copy to incoming folder of torrent client to pick up
-                    if (!skipCopyToIncoming)
+                    if (!skipCopyToIncoming && !isDuplicate) {
                         File.Copy (
                                     torrFile.FullName,
-                                    c.TORR_INCOMING_DIR + torrFile.Name
+                                    c.TORR_INCOMING_DIR + torrFile.Name,
+                                    true
                                     );
 
-                    // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
-                    File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
-                    // add the largest file name and size to the list, so to be sure we can detect duplicates even if the file-name differs or it's the same file in different torrent files
-                    File.AppendAllLines (c.TORR_ARCHIVE_FILES_REG, new string[] { torrLargestFile.Path + "|" + torrLargestFile.Length });
+                        copiedCount++;
+                    }
+
+                    if (!isDuplicate) {
+                        // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
+                        File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
+                        // add the largest file name and size to the list, so to be sure we can detect duplicates even if the file-name differs or it's the same file in different torrent files
+                        File.AppendAllLines (c.TORR_ARCHIVE_FILES_REG, new string[] { torrLargestFile.Path + "|" + torrLargestFile.Length });
+                    }
 
                     dao.LoadDownloadedFiles (
                         new List<MDownloadedFile> () {
@@ -115,7 +137,6 @@ namespace ArchiveTorrents
                                     new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name))
                             } });
 
-                    copiedCount++;
                 }
 
                 // delete original file at the end
@@ -123,7 +144,7 @@ namespace ArchiveTorrents
                 Console.WriteLine ();
             }
 
-            // process hash files
+            // process hash files that are only hasId.torrhash
             Console.WriteLine ();
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], processing hash files..");
             Console.WriteLine ();
@@ -208,30 +229,26 @@ namespace ArchiveTorrents
         /// Sync torrents being in use by a BT client to the archive directory, so to ensure to have all copies archived
         /// </summary>
         /// <param name="inputDir"></param>
-        public void SyncDownloadedTorrents(string inputDir, string fileExtension)
+        public void SyncDownloadedTorrents (string inputDir, string fileExtension)
         {
-            var ff = new IOManager().ListDownloadedTorrents(inputDir, fileExtension);
+            var ff = new IOManager ().ListDownloadedTorrents (inputDir, fileExtension);
 
-            foreach (var f in ff.MDownloadedTorrs)
-            {
-                var safeName = new FileNameManager().SafeName(f.Name).Replace(".torrent", "");
+            foreach (var f in ff.MDownloadedTorrs) {
+                var safeName = new FileNameManager ().SafeName (f.Name).Replace (".torrent", "");
                 var targetName = c.TORR_INPUT_DIR + Path.DirectorySeparator + safeName + ".torrent";
 
                 Console.WriteLine ($"Checking file     [{ Magenta (f.FullName) }]\n             >    [{ Red (targetName) }]");
 
-                if (!File.Exists(targetName)
+                if (!File.Exists (targetName)
                     &&
                     // also check if there's a match of the safeName (which is stripped of web-site markers)
-                    Directory.GetFiles(c.TORR_INPUT_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.TopDirectoryOnly).Length == 0)
-                {
-                    try
-                    {
-                        File.Copy(f.FullName, targetName);
+                    Directory.GetFiles (c.TORR_INPUT_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.TopDirectoryOnly).Length == 0) {
+                    try {
+                        File.Copy (f.FullName, targetName);
                         Console.WriteLine ($"Copying to        [{ Green (targetName) }]\n");
 
-                    } catch (Exception ex)
-                    {
-                        Console.Error.WriteLine("Unable to copy file '{0}', to '{1}' - {2}", f.FullName, targetName, ex.Message);
+                    } catch (Exception ex) {
+                        Console.Error.WriteLine ("Unable to copy file '{0}', to '{1}' - {2}", f.FullName, targetName, ex.Message);
                     }
 
                 }

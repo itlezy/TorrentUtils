@@ -34,13 +34,17 @@ namespace ArchiveTorrents
 
                 return ins;
             }
-
         }
 
         public int LoadDownloadedTorrents (List<MDownloadedTorr> torrs)
         {
             using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
                 var ins = db.InsertAll (torrs, " OR IGNORE ");
+
+            }
+
+            using (var db = new SQLiteConnection (c.SDB_DLD_URL)) {
+                var ins = db.UpdateAll (torrs);
 
                 return ins;
             }
