@@ -28,14 +28,20 @@ namespace ILCommon.IO
 
         public ListDownloadedTorrentsRet ListDownloadedTorrents (string inputDir, string fileExtension)
         {
-            string fExt = string.IsNullOrWhiteSpace (fileExtension) ? c.TORR_EXT_WILDCARD : fileExtension;
+            var r = new ListDownloadedTorrentsRet ();
+
+            if (!Directory.Exists (inputDir)) {
+                Console.Error.WriteLine ("Directory does not exist [{0}]", inputDir);
+                return r;
+            }
+
+            var fExt = string.IsNullOrWhiteSpace (fileExtension) ? c.TORR_EXT_WILDCARD : fileExtension;
+            Console.WriteLine ("Processing directory [{0}], ext [{1}]", inputDir, fExt);
 
             var allFiles = Directory.GetFiles (inputDir, fExt, System.IO.SearchOption.AllDirectories);
 
             if (c.DEBUG_MODE)
                 Console.WriteLine ("Found {0} files in dir '{1}', ext '{2}'", allFiles.Length, inputDir, fExt);
-
-            var r = new ListDownloadedTorrentsRet ();
 
             for (var i = 0; i < allFiles.Length; i++) {
                 try {
@@ -43,7 +49,7 @@ namespace ILCommon.IO
 
                     if (file.Length > 1024) {
                         try {
-                            var torr = Torrent.Load (file.FullName);
+                            var torr = Torrent.Load (File.ReadAllBytes (file.FullName));
 
                             r.MDownloadedTorrs.Add (new MDownloadedTorr () {
                                 HashId = torr.InfoHashes.V1OrV2.ToHex ().ToLower (),

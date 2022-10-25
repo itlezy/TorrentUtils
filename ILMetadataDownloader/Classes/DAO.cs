@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+
+using Alphaleonis.Win32.Filesystem;
 
 using ILCommon.Data;
 using ILCommon.Data.Model;
@@ -57,6 +58,16 @@ namespace MetadataDownloader.Data
 
                     Console.WriteLine ("Cleaned \t{0} records, banWord \t{1}", ins, banWord);
                 }
+            }
+        }
+
+        public void ResetProcessed ()
+        {
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
+
+                var ins = db.Execute ($"UPDATE MTorr SET Processed = false, Timeout = false WHERE Downloaded <> true");
+
+                Console.WriteLine ("ResetProcessed() \t{0} records", ins);
             }
         }
 
@@ -120,6 +131,9 @@ namespace MetadataDownloader.Data
                 var query = "SELECT * FROM MTorr WHERE (Processed <> true) ORDER BY IsAnnounce DESC, CountSeen DESC, LastSeen DESC LIMIT 1";
                 var mTorr = db.Query<MTorr> (query).FirstOrDefault ();
 
+                if (mTorr == null)
+                    return null;
+
                 if (c.DEBUG_MODE)
                     Console.WriteLine ("GetNextHashId()  Found Torrent {0}, countSeen {2}, processedTime {1}",
                         mTorr.HashId,
@@ -177,16 +191,104 @@ namespace MetadataDownloader.Data
             }
         }
 
-        public void LoadHashesFromFile (string inputFile) //TODO: this should be split in IO and DAO
+        public void LoadHashesFrom (string inputFileOrDir) //TODO: this should be split in IO and DAO
+        {
+            int originalRecordsCount;
+            List<MTorrLog> mTorrs;
+
+            Console.WriteLine ("Processing [{0}]", inputFileOrDir);
+
+            var attr = File.GetAttributes (inputFileOrDir);
+
+            if (attr.HasFlag (System.IO.FileAttributes.Directory))
+                LoadHashesFromDirectory (inputFileOrDir, out originalRecordsCount, out mTorrs);
+            else
+                LoadHashesFromLogFile (inputFileOrDir, out originalRecordsCount, out mTorrs);
+
+            Console.WriteLine ("Insert new records to Log Table..");
+
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
+                var ins = db.InsertAll (mTorrs, " OR IGNORE ");
+
+                Console.WriteLine ("Loaded \t{0:n0} records to Log Table out of \t{1:n0} ..", ins, originalRecordsCount);
+            }
+
+            Console.WriteLine ("Insert new records to Tor Table..");
+
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
+                var ins = db.Execute (@"INSERT INTO MTorr (HashId, IsAnnounce, CountSeen, LastSeen, Processed)
+                                        SELECT DISTINCT 
+                                          HashId, IsAnnounce, COUNT(HashId) AS CountSeen, MAX(SeenAt) AS LastSeen, 0 as Processed
+                                        FROM
+                                          MTorrLog
+                                        WHERE
+                                          HashId NOT IN (SELECT DISTINCT HashId FROM MTorr)
+                                        GROUP BY HashId
+                                        ORDER BY CountSeen DESC");
+
+                Console.WriteLine ("Loaded \t{0:n0} records to Tor Table out of \t{1:n0} ..", ins, originalRecordsCount);
+            }
+
+            Console.WriteLine ("Updating counts and lastSeen..");
+
+            using (var db = new SQLiteConnection (c.SDB_URL)) {
+                var ins = db.Execute (@"UPDATE MTorr
+                                        SET
+                                            CountSeen = (SELECT COUNT(MTorrLog.HashId) AS CountSeen FROM MTorrLog WHERE MTorr.HashId = MTorrLog.HashId GROUP BY MTorrLog.HashId),
+                                            LastSeen  = (SELECT   MAX(MTorrLog.SeenAt) AS LastSeen  FROM MTorrLog WHERE MTorr.HashId = MTorrLog.HashId GROUP BY MTorrLog.HashId)
+                                        WHERE EXISTS (
+                                            SELECT HashId FROM MTorrLog WHERE MTorrLog.HashId = MTorr.HashId
+                                        )");
+
+                Console.WriteLine ("Updated stats of \t{0:n0} records to Tor Table ..", ins);
+            }
+        }
+
+        private void LoadHashesFromDirectory (string inputFileOrDir, out int originalRecordsCount, out List<MTorrLog> mTorrs)
+        {
+            Console.WriteLine ("LoadHashesFromDirectory() [{0}]", inputFileOrDir);
+            var files = Directory.GetFiles (inputFileOrDir, "*.txt").Where (fileName => System.Text.RegularExpressions.Regex.IsMatch (fileName, "\\b[0-9a-f]{40}\\b"));
+            originalRecordsCount = files.Count ();
+
+            Console.WriteLine ("Loaded \t{0:n0} lines from file [{1}]", originalRecordsCount, inputFileOrDir);
+
+            mTorrs = new List<MTorrLog> ();
+            Console.WriteLine ("Processing lines, extracting hashes..");
+
+            foreach (var file in files) {
+
+                try {
+                    var dateSeen = DateTime.Now;
+                    var hashId = Path.GetFileNameWithoutExtension (file);
+
+                    Console.WriteLine ("Date [{0}], HashId [{1}]", dateSeen, hashId);
+
+                    mTorrs.Add (new MTorrLog () {
+                        HashId = hashId,
+                        SeenAt = dateSeen,
+                        IsAnnounce = true
+                    });
+
+                    File.Move (file, file + ".del");
+
+                } catch (Exception ex) {
+                    Console.Error.WriteLine ("Error processing line [{0}] {1}", file, ex.Message);
+                }
+
+            }
+
+            Console.WriteLine ("Found \t{0:n0} hashes from text file..", mTorrs.Count);
+        }
+
+        private static void LoadHashesFromLogFile (string inputFile, out int originalRecordsCount, out List<MTorrLog> mTorrs)
         {
             Console.WriteLine ("LoadHashesFromFile() [{0}]", inputFile);
-            var lines = File.ReadAllLines (inputFile);
+            string[] lines = File.ReadAllLines (inputFile);
+            originalRecordsCount = lines.Length;
 
-            Console.WriteLine ("Loaded \t{0:n0} lines from file [{1}]", lines.Length, inputFile);
-            //Console.ReadLine ();
+            Console.WriteLine ("Loaded \t{0:n0} lines from file [{1}]", originalRecordsCount, inputFile);
 
-            var mTorrs = new List<MTorrLog> ();
-
+            mTorrs = new List<MTorrLog> ();
             Console.WriteLine ("Processing lines, extracting hashes..");
 
             foreach (var line in lines) {
@@ -213,44 +315,6 @@ namespace MetadataDownloader.Data
             }
 
             Console.WriteLine ("Found \t{0:n0} hashes from text file..", mTorrs.Count);
-
-            Console.WriteLine ("Insert new records to Log Table..");
-
-            using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var ins = db.InsertAll (mTorrs, " OR IGNORE ");
-
-                Console.WriteLine ("Loaded \t{0:n0} records to Log Table out of \t{1:n0} ..", ins, lines.Length);
-            }
-
-            Console.WriteLine ("Insert new records to Tor Table..");
-
-            using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var ins = db.Execute (@"INSERT INTO MTorr (HashId, IsAnnounce, CountSeen, LastSeen, Processed)
-                                        SELECT DISTINCT 
-                                          HashId, IsAnnounce, COUNT(HashId) AS CountSeen, MAX(SeenAt) AS LastSeen, 0 as Processed
-                                        FROM
-                                          MTorrLog
-                                        WHERE
-                                          HashId NOT IN (SELECT DISTINCT HashId FROM MTorr)
-                                        GROUP BY HashId
-                                        ORDER BY CountSeen DESC");
-
-                Console.WriteLine ("Loaded \t{0:n0} records to Tor Table out of \t{1:n0} ..", ins, lines.Length);
-            }
-
-            Console.WriteLine ("Updating counts and lastSeen..");
-
-            using (var db = new SQLiteConnection (c.SDB_URL)) {
-                var ins = db.Execute (@"UPDATE MTorr
-                                        SET
-                                            CountSeen = (SELECT COUNT(MTorrLog.HashId) AS CountSeen FROM MTorrLog WHERE MTorr.HashId = MTorrLog.HashId GROUP BY MTorrLog.HashId),
-                                            LastSeen  = (SELECT   MAX(MTorrLog.SeenAt) AS LastSeen  FROM MTorrLog WHERE MTorr.HashId = MTorrLog.HashId GROUP BY MTorrLog.HashId)
-                                        WHERE EXISTS (
-                                            SELECT HashId FROM MTorrLog WHERE MTorrLog.HashId = MTorr.HashId
-                                        )");
-
-                Console.WriteLine ("Updated stats of \t{0:n0} records to Tor Table ..", ins);
-            }
         }
     }
 }

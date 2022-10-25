@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
+
+using Alphaleonis.Win32.Filesystem;
 
 using CommandLine;
 
@@ -39,10 +40,14 @@ namespace MetadataDownloader
             if (opts.CreateTables) {
 
                 new DAO ().CreateTables ();
-            } else if (opts.LoadHashes && File.Exists (opts.InputLogFile)) {
+            } else if (opts.LoadHashes) {
 
-                new DAO ().LoadHashesFromFile (opts.InputLogFile);
-            } else if (opts.LoadDownloadedTorrents && !String.IsNullOrWhiteSpace (opts.InputDir) && Directory.Exists (opts.InputDir)) {
+                if (!String.IsNullOrWhiteSpace (opts.InputLogFile))
+                    new DAO ().LoadHashesFrom (opts.InputLogFile);
+                else
+                    new DAO ().LoadHashesFrom (opts.InputDir);
+
+            } else if (opts.LoadDownloadedTorrents) {
 
                 new QueueManager ().LoadDownloadedTorrents (opts.InputDir);
             } else if (opts.PrintStats) {

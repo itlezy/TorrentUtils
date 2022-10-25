@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Alphaleonis.Win32.Filesystem;
 
 using ILCommon;
 using ILCommon.Data.Model;
@@ -119,7 +120,7 @@ namespace MetadataDownloader
                     Console.WriteLine ($"DownloadAsync()  No metadata for   {Red (hashId)} *** \\*//");
                 }
 
-                await manager.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT));
+                await manager.StopAsync (new TimeSpan (0, 0, c.TORRENT_STOP_TIMEOUT > 0 ? c.TORRENT_STOP_TIMEOUT : 60));
 
                 try {
                     await engine.RemoveAsync (manager.Torrent, RemoveMode.CacheDataAndDownloadedData);
@@ -161,6 +162,8 @@ namespace MetadataDownloader
             if (engine.Settings.AllowPortForwarding)
                 Console.WriteLine ("MainLoop()       uPnP or NAT-PMP port mappings will be created for any ports needed by MonoTorrent");
 
+            dao.ResetProcessed ();
+
             while (true) {
                 await Task.Delay (c.MAIN_LOOP_INTERVAL);
 
@@ -174,13 +177,18 @@ namespace MetadataDownloader
                     (DateTime.Now - lastDowloaded).Seconds + ((DateTime.Now - lastDowloaded).Minutes * 60),
                     avgResponseTime.Average ());
 
-                if (engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
+                if (c.TORRENT_PARALLEL_LIMIT == 0 || engine.Torrents.Count < c.TORRENT_PARALLEL_LIMIT) {
                     var hash = dao.GetNextHashId ();
 
+                    if (hash != null) {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    DownloadAsync (hash, engine, token);
+                        DownloadAsync (hash, engine, token);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                } else {
+                    } else {
+                        Console.WriteLine ("MainLoop()       No hashes available from DB");
+                    }
+
+                } else if (c.TORRENT_PARALLEL_LIMIT > 0) {
                     if (engine == null) { throw new ApplicationException ("Engine is null, how?"); }
                     if (engine.Torrents == null) { throw new ApplicationException ("Engine Torrents are null, how?"); }
 

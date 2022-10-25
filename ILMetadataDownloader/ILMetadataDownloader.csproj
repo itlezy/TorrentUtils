@@ -78,6 +78,9 @@
     <Compile Include="Classes\TestManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="001_loadHashesToDBExistingFromDir.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="002_updateTorrentStatus.cmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
