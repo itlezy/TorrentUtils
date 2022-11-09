@@ -137,25 +137,33 @@ namespace ILFilePacifier
 
                 }
 
+                int c = 0;
                 foreach (var found in foundsff) {
                     File.AppendAllLines (
-                        "Z_" + matcher.What.FirstOrDefault () + "_F.cmd",
-                        new String[] { string.Format ("ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n",
+                        "Z_" + matcher.What.FirstOrDefault () + "_2F.cmd",
+                        new String[] {
+                        string.Format("TITLE PROCESSING F {0} / {1} - \"{2}\"\r\n", ++c, foundsff.Count, found),
+                        string.Format ("ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n\r\n",
                         Path.GetDirectoryName(found),
                         Path.GetDirectoryName(matcher.Destination),
                         Path.GetFileName(found)
-                        ) },
+                        ),
+                        },
                         Encoding.Default
                         );
                 }
 
+                c = 0;
                 foreach (var found in foundsdd) {
                     File.AppendAllLines (
-                        "Z_" + matcher.What.FirstOrDefault () + "_D.cmd",
-                        new String[] { string.Format ("ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n",
+                        "Z_" + matcher.What.FirstOrDefault () + "_1D.cmd",
+                        new String[] {
+                        string.Format("TITLE PROCESSING D {0} / {1} - \"{2}\"\r\n", ++c, foundsdd.Count, found),
+                        string.Format ("ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n\r\n",
                         found,
                         Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
-                        ) },
+                        ),
+                        },
                         Encoding.Default
                         );
                 }
