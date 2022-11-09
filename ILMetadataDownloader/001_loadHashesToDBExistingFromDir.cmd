@@ -12,6 +12,9 @@ ECHO Launching MetadataDownloader..
 REM Load new hashes to DB
 MetadataDownloader.exe -s -d %USERPROFILE%\Downloads
 
+CD /D %~dp0
+START "" MetadataDownloader.exe
+
 GOTO :EOF
 
 

@@ -72,8 +72,11 @@ namespace ArchiveTorrents
 
                 var torrLargestFile = torrTorr.Files.OrderByDescending (t => t.Length).First ();
                 var torrHashId = torrTorr.InfoHashes.V1OrV2.ToHex ().ToLower ();
-                var normalizedName = new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name));
+                var normalizedFileName = new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (torrFile.Name));
+                var normalizedTorrName = new FileNameManager ().NormalizeFileName (torrTorr.Name);
+
                 var isDuplicate = false;
+                var forceArchive = false;
 
                 Console.WriteLine ($"Found file        [{ Magenta (torrFile.Name) }], hashId { Green (torrHashId) }, total size { Green (torrTorr.Size.ToString ("n0")) }");
                 Console.WriteLine ($"             >    [{ Magenta (torrLargestFile.Path) }], size { Green (torrLargestFile.Length.ToString ("n0")) } ");
@@ -89,18 +92,25 @@ namespace ArchiveTorrents
                     duplicatesCount++;
                     isDuplicate = true;
                 } else if (
-                    Directory.GetFiles (c.TORR_ARCHIVE_DIR, normalizedName + c.TORR_EXT_WILDCARD).Length > 0 ||
-                    Directory.GetFiles (c.TORR_ARCHIVE_DIR_OLD, normalizedName + c.TORR_EXT_WILDCARD).Length > 0
-                    ) {
-                    // remove duplicate if the same torrent file exists (redundant really at this stage)
+                    Directory.GetFiles (c.TORR_ARCHIVE_DIR, normalizedFileName + c.TORR_EXT_WILDCARD).Length > 0 ||
+                    Directory.GetFiles (c.TORR_ARCHIVE_DIR, normalizedTorrName + c.TORR_EXT_WILDCARD).Length > 0) {
+                    // remove duplicate if the same torrent file exists
                     Console.WriteLine ($"Duplicate found F [{ Red (torrFile.Name) }], removing..");
                     duplicatesCount++;
                     isDuplicate = true;
+                } else if (
+                    Directory.GetFiles (c.TORR_ARCHIVE_DIR_OLD, normalizedFileName + c.TORR_EXT_WILDCARD).Length > 0 ||
+                    Directory.GetFiles (c.TORR_ARCHIVE_DIR_OLD, normalizedTorrName + c.TORR_EXT_WILDCARD).Length > 0) {
+                    // remove duplicate if the same torrent file exists
+                    Console.WriteLine ($"Duplicate found Z [{ Red (torrFile.Name) }], removing..");
+                    duplicatesCount++;
+                    isDuplicate = true;
+                    forceArchive = true;
                 }
 
                 // execute all the time, but..
                 {
-                    if (!File.Exists (c.TORR_ARCHIVE_DIR + torrFile.Name)) {
+                    if (!File.Exists (c.TORR_ARCHIVE_DIR + torrFile.Name) || forceArchive) {
                         // archive as copy
                         File.Copy (
                                     torrFile.FullName,
