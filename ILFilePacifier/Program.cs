@@ -126,7 +126,7 @@ namespace ILFilePacifier
 
                             foreach (var d in dd) {
                                 var di = new DirectoryInfo (d);
-                                
+
                                 if (di.GetFiles ().Length > 0)// && Operators.LikeString (d, ILMatch.ToWildcard(what), Microsoft.VisualBasic.CompareMethod.Text))
                                     foundsdd.Add (d);
                             }
@@ -139,33 +139,48 @@ namespace ILFilePacifier
 
                 int c = 0;
                 foreach (var found in foundsff) {
-                    File.AppendAllLines (
-                        "Z_" + matcher.What.FirstOrDefault () + "_2F.cmd",
-                        new String[] {
-                        string.Format("TITLE PROCESSING F {0} / {1} - \"{2}\"\r\n", ++c, foundsff.Count, found),
-                        string.Format ("ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n\r\n",
+                    var lines = new String[] {
+                        string.Format ("TITLE PROCESSING F {0} / {1} - \"{2}\"\r\n", ++c, foundsff.Count, found),
+
+                        string.Format ("IF EXIST   \"{0}\" PAUSE \r\n",
+                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + Path.GetFileName(found)
+                        ),
+
+                        string.Format ("IF EXIST   \"{3}\" (\r\n  ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n)\r\n\r\n",
                         Path.GetDirectoryName(found),
                         Path.GetDirectoryName(matcher.Destination),
-                        Path.GetFileName(found)
+                        Path.GetFileName(found),
+                        found
                         ),
-                        },
-                        Encoding.Default
-                        );
+
+                    };
+
+                    File.AppendAllLines (
+                        "Z_" + matcher.What.FirstOrDefault () + "_2F.cmd",
+                        lines,
+                        Encoding.Default);
                 }
 
                 c = 0;
                 foreach (var found in foundsdd) {
-                    File.AppendAllLines (
-                        "Z_" + matcher.What.FirstOrDefault () + "_1D.cmd",
-                        new String[] {
-                        string.Format("TITLE PROCESSING D {0} / {1} - \"{2}\"\r\n", ++c, foundsdd.Count, found),
-                        string.Format ("ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n\r\n",
+                    var lines = new String[] {
+                        string.Format ("TITLE PROCESSING D {0} / {1} - \"{2}\"\r\n", ++c, foundsdd.Count, found),
+
+                        string.Format ("IF EXIST   \"{0}\" PAUSE \r\n",
+                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
+                        ),
+
+                        string.Format ("IF EXIST   \"{0}\" (\r\n  ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n)\r\n\r\n",
                         found,
                         Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
                         ),
-                        },
-                        Encoding.Default
-                        );
+
+                    };
+
+                    File.AppendAllLines (
+                        "Z_" + matcher.What.FirstOrDefault () + "_1D.cmd",
+                        lines,
+                        Encoding.Default);
                 }
             }
 
