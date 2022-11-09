@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Alphaleonis.Win32.Filesystem;
 
+using Microsoft.VisualBasic.CompilerServices;
+
 namespace ILFilePacifier
 {
     /**
@@ -41,6 +43,10 @@ namespace ILFilePacifier
             Where = new List<string> ();
         }
 
+        public static string ToWildcard (string inp)
+        {
+            return "*" + inp.Trim ().Replace (' ', '*') + "*";
+        }
 
         public static List<ILMatch> LoadFromCSV (string filePath)
         {
@@ -87,7 +93,8 @@ namespace ILFilePacifier
 
             foreach (var matcher in matchers) {
 
-                var founds = new List<String> ();
+                var foundsff = new List<String> ();
+                var foundsdd = new List<String> ();
 
                 foreach (var where in wheres) {
 
@@ -95,7 +102,7 @@ namespace ILFilePacifier
                         try {
                             var ff = Directory.GetFiles (
                                 where,
-                                "*" + what.Trim ().Replace (' ', '*') + "*",
+                                ILMatch.ToWildcard (what),
                                 System.IO.SearchOption.AllDirectories
                                 );
 
@@ -103,8 +110,25 @@ namespace ILFilePacifier
                                 var fi = new FileInfo (f);
 
                                 if (fi.Length > (1024 * 1024))
-                                    founds.Add (f);
+                                    foundsff.Add (f);
 
+                            }
+                        } catch (Exception x) {
+                            Console.Error.WriteLine ("Err {0}", x.Message);
+                        }
+
+                        try {
+                            var dd = Directory.GetDirectories (
+                            where,
+                            ILMatch.ToWildcard (what),
+                            System.IO.SearchOption.AllDirectories
+                            );
+
+                            foreach (var d in dd) {
+                                var di = new DirectoryInfo (d);
+                                
+                                if (di.GetFiles ().Length > 0)// && Operators.LikeString (d, ILMatch.ToWildcard(what), Microsoft.VisualBasic.CompareMethod.Text))
+                                    foundsdd.Add (d);
                             }
                         } catch (Exception x) {
                             Console.Error.WriteLine ("Err {0}", x.Message);
@@ -113,18 +137,28 @@ namespace ILFilePacifier
 
                 }
 
-                foreach (var found in founds) {
+                foreach (var found in foundsff) {
                     File.AppendAllLines (
-                        "Z_M_" + matcher.What.FirstOrDefault () + ".cmd",
+                        "Z_" + matcher.What.FirstOrDefault () + "_F.cmd",
                         new String[] { string.Format ("ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n",
                         Path.GetDirectoryName(found),
                         Path.GetDirectoryName(matcher.Destination),
                         Path.GetFileName(found)
                         ) },
-                        Encoding.UTF8
+                        Encoding.Default
                         );
                 }
 
+                foreach (var found in foundsdd) {
+                    File.AppendAllLines (
+                        "Z_" + matcher.What.FirstOrDefault () + "_D.cmd",
+                        new String[] { string.Format ("ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n",
+                        found,
+                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
+                        ) },
+                        Encoding.Default
+                        );
+                }
             }
 
         }
