@@ -76,6 +76,16 @@ namespace ILFilePacifier
 
     }
 
+    public static class StringExt
+    {
+        public static string Truncate (this string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty (value))
+                return value;
+            return value.Length <= maxLength ? value : value.Substring (0, maxLength);
+        }
+    }
+
     class Program
     {
         static void Main (string[] args)
@@ -132,7 +142,7 @@ namespace ILFilePacifier
                             foreach (var f in ff) {
                                 var fi = new FileInfo (f);
 
-                                if (fi.Length > (1024 * 1024) && !foundsff.Contains (f))
+                                if (fi.Length > (90 * 1024 * 1024) && !foundsff.Contains (f))
                                     foundsff.Add (f);
 
                             }
@@ -157,36 +167,50 @@ namespace ILFilePacifier
                 string targetDir = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (found).Name;
 
                 var lines = new String[] {
-                        string.Format ("TITLE PROCESSING D {0} / {1} [ {2} ] \"{3}\"\r\n", ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found),
+                        string.Format (
+                            "TITLE PROCESSING D {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
+                            ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found, targetDir
+                        ).Truncate(240),
 
-                        // in case the target directory exists, compare the content files
+                        "\r\n\r\n",
 
-                        string.Format ("IF EXIST   \"{0}\" (\r\n" +
-                        "  Certutil -hashfile \"{1}\"\r\n" +
-                        "  Certutil -hashfile \"{2}\"\r\n" +
-                        "  PAUSE\r\n" +
-                        ")\r\n\r\n",
+                        //// in case the target directory exists, compare the content files
 
-                        targetDir,
+                        //string.Format ("IF EXIST   \"{0}\" (\r\n" +
+                        //"  REM Certutil -hashfile \"{1}\"\r\n" +
+                        //"  REM Certutil -hashfile \"{2}\"\r\n" +
+                        //"  REM PAUSE\r\n" +
+                        //")\r\n\r\n",
 
-                        Directory.GetFiles(found).FirstOrDefault(),
-                        Directory.Exists(targetDir) && Directory.GetFiles(targetDir).Length > 0 ? Directory.GetFiles(targetDir).FirstOrDefault() : "NOFILE"
+                        //targetDir,
 
+                        //Directory.GetFiles(found).FirstOrDefault(),
+                        //Directory.Exists(targetDir) && Directory.GetFiles(targetDir).Length > 0 ? Directory.GetFiles(targetDir).FirstOrDefault() : "NOFILE"
+
+                        //),
+
+                        string.Format (
+                            "IF EXIST             \"{0}\" (\r\n" +
+                            "  ROBOCOPY           \"{0}\" \"{1}\" /MOV\r\n" +
+                            "  ATTRIB -R -S -H    \"{0}\"\r\n" +
+                            "  RMDIR              \"{0}\"\r\n" +
+                            ")\r\n\r\n",
+
+                            found,
+                            targetDir
                         ),
 
-                        string.Format ("IF EXIST   \"{0}\" (\r\n" +
-                        "  ROBOCOPY \"{0}\" \"{1}\" /MOV\r\n" +
-                        "  RMDIR    \"{0}\"\r\n" +
-                        ")\r\n\r\n",
-
-                        found,
-                        targetDir
-                        ),
+                        "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
 
                     };
 
                 File.AppendAllLines (
                     "Z_!ALL_1D.cmd",
+                    lines,
+                    Encoding.Default);
+
+                File.AppendAllLines (
+                    "Z_!ALL_0ALL.cmd",
                     lines,
                     Encoding.Default);
 
@@ -202,29 +226,46 @@ namespace ILFilePacifier
             int c = 0;
             foreach (var found in foundsff) {
                 var lines = new String[] {
-                        string.Format ("TITLE PROCESSING F {0} / {1} [ {2} ] \"{3}\"\r\n", ++c, foundsff.Count, matcher.What.FirstOrDefault (), found),
+                        string.Format (
+                            "TITLE PROCESSING F {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
+                            ++c, foundsff.Count, matcher.What.FirstOrDefault (), found, Path.GetDirectoryName(matcher.Destination)
+                        ).Truncate(240),
 
-                        string.Format ("IF EXIST   \"{0}\" (\r\n" +
-                        "  Certutil -hashfile \"{1}\"\r\n" +
-                        "  Certutil -hashfile \"{0}\"\r\n" +
-                        "  PAUSE\r\n" +
-                        ")\r\n\r\n",
+                        "\r\n\r\n",
 
-                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + Path.GetFileName(found),
-                        found
+                        string.Format (
+                            "IF EXIST             \"{0}\" (\r\n" +
+                            "  Certutil -hashfile \"{1}\"\r\n" +
+                            "  Certutil -hashfile \"{0}\"\r\n" +
+                            "  PAUSE\r\n" +
+                            ")\r\n\r\n",
+
+                            Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + Path.GetFileName(found),
+                            found
                         ),
 
-                        string.Format ("IF EXIST   \"{3}\" (\r\n  ROBOCOPY \"{0}\" \"{1}\" \"{2}\" /MOV\r\n)\r\n\r\n",
-                        Path.GetDirectoryName(found),
-                        Path.GetDirectoryName(matcher.Destination),
-                        Path.GetFileName(found),
-                        found
+                        string.Format (
+                            "IF EXIST             \"{3}\" (\r\n" +
+                            "  ATTRIB -R -S -H    \"{3}\"\r\n" +
+                            "  ROBOCOPY           \"{0}\" \"{1}\" \"{2}\" /MOV\r\n" +
+                            ")\r\n\r\n",
+                            Path.GetDirectoryName(found),
+                            Path.GetDirectoryName(matcher.Destination),
+                            Path.GetFileName(found),
+                            found
                         ),
+
+                        "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
 
                     };
 
                 File.AppendAllLines (
                     "Z_!ALL_2F.cmd",
+                    lines,
+                    Encoding.Default);
+
+                File.AppendAllLines (
+                    "Z_!ALL_0ALL.cmd",
                     lines,
                     Encoding.Default);
 
