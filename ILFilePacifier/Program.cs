@@ -111,8 +111,11 @@ namespace ILFilePacifier
                             foreach (var d in dd) {
                                 var di = new DirectoryInfo (d);
 
-                                if (di.GetFiles ().Length > 0)// && Operators.LikeString (d, ILMatch.ToWildcard(what), Microsoft.VisualBasic.CompareMethod.Text))
+                                // && Operators.LikeString (d, ILMatch.ToWildcard(what), Microsoft.VisualBasic.CompareMethod.Text))
+
+                                if (di.GetFiles ().Length > 0 && !foundsdd.Contains (d))
                                     foundsdd.Add (d);
+
                             }
                         } catch (Exception x) {
                             Console.Error.WriteLine ("Err {0}", x.Message);
@@ -129,7 +132,7 @@ namespace ILFilePacifier
                             foreach (var f in ff) {
                                 var fi = new FileInfo (f);
 
-                                if (fi.Length > (1024 * 1024))
+                                if (fi.Length > (1024 * 1024) && !foundsff.Contains (f))
                                     foundsff.Add (f);
 
                             }
@@ -151,11 +154,24 @@ namespace ILFilePacifier
         {
             int c = 0;
             foreach (var found in foundsdd) {
+                string targetDir = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (found).Name;
+
                 var lines = new String[] {
                         string.Format ("TITLE PROCESSING D {0} / {1} [ {2} ] \"{3}\"\r\n", ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found),
 
-                        string.Format ("IF EXIST   \"{0}\" PAUSE \r\n",
-                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
+                        // in case the target directory exists, compare the content files
+
+                        string.Format ("IF EXIST   \"{0}\" (\r\n" +
+                        "  Certutil -hashfile \"{1}\"\r\n" +
+                        "  Certutil -hashfile \"{2}\"\r\n" +
+                        "  PAUSE\r\n" +
+                        ")\r\n\r\n",
+
+                        targetDir,
+
+                        Directory.GetFiles(found).FirstOrDefault(),
+                        Directory.Exists(targetDir) && Directory.GetFiles(targetDir).Length > 0 ? Directory.GetFiles(targetDir).FirstOrDefault() : "NOFILE"
+
                         ),
 
                         string.Format ("IF EXIST   \"{0}\" (\r\n" +
@@ -164,7 +180,7 @@ namespace ILFilePacifier
                         ")\r\n\r\n",
 
                         found,
-                        Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo(found).Name
+                        targetDir
                         ),
 
                     };
@@ -191,7 +207,7 @@ namespace ILFilePacifier
                         string.Format ("IF EXIST   \"{0}\" (\r\n" +
                         "  Certutil -hashfile \"{1}\"\r\n" +
                         "  Certutil -hashfile \"{0}\"\r\n" +
-                        "  PAUSE \r\n" +
+                        "  PAUSE\r\n" +
                         ")\r\n\r\n",
 
                         Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + Path.GetFileName(found),
