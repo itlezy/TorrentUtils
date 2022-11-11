@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 using Alphaleonis.Win32.Filesystem;
-
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace ILFilePacifier
 {
@@ -28,78 +26,31 @@ namespace ILFilePacifier
     g:\old_music
     h:\archive_music
 
+    -----------------------------------------
+
+    Lines can be commented with #
+
      * */
-
-    class ILMatch
-    {
-        public List<string> What { get; }
-        public List<string> Where { get; }
-
-        public string Destination { get; set; }
-
-        public ILMatch ()
-        {
-            What = new List<string> ();
-            Where = new List<string> ();
-        }
-
-        public static string ToWildcard (string inp)
-        {
-            return "*" + inp.Trim ().Replace (' ', '*') + "*";
-        }
-
-        public static List<ILMatch> LoadFromCSV (string filePath)
-        {
-            var lines = File.ReadAllLines (filePath, Encoding.UTF8);
-            var matches = new List<ILMatch> ();
-
-            foreach (var line in lines) {
-
-                if (!String.IsNullOrWhiteSpace (line) && line.IndexOf (";") > 0) {
-                    var match = new ILMatch ();
-
-                    var whats = line.Split (';')[0];
-
-                    foreach (var what in whats.Split (',')) {
-                        match.What.Add (what.Trim ());
-                    }
-
-                    match.Destination = line.Split (';')[1];
-
-                    matches.Add (match);
-                }
-            }
-
-
-            return matches;
-        }
-
-    }
-
-    public static class StringExt
-    {
-        public static string Truncate (this string value, int maxLength)
-        {
-            if (string.IsNullOrEmpty (value))
-                return value;
-            return value.Length <= maxLength ? value : value.Substring (0, maxLength);
-        }
-    }
 
     class Program
     {
+
+        static readonly string FILE_WHERES = ConfigurationManager.AppSettings["FILE_WHERES"];
+        static readonly string FILE_MATCHERS = ConfigurationManager.AppSettings["FILE_MATCHERS"];
+        static readonly int FILE_MIN_SIZE_MB = int.Parse (ConfigurationManager.AppSettings["FILE_MIN_SIZE_MB"]);
+
         static void Main (string[] args)
         {
 
             var wheres = new List<String> ();
 
-            foreach (var where in File.ReadAllLines (@"wheres.txt")) {
-                if (!String.IsNullOrWhiteSpace (where) && Directory.Exists (where)) {
+            foreach (var where in File.ReadAllLines (FILE_WHERES)) {
+                if (!String.IsNullOrWhiteSpace (where) && where.IndexOf ('#') != 0 && Directory.Exists (where)) {
                     wheres.Add (where);
                 }
             }
 
-            var matchers = ILMatch.LoadFromCSV (@"matchers.csv");
+            var matchers = ILMatch.LoadFromCSV (FILE_MATCHERS);
 
             foreach (var matcher in matchers) {
 
@@ -113,15 +64,13 @@ namespace ILFilePacifier
                         // find matching dirs
                         try {
                             var dd = Directory.GetDirectories (
-                            where,
-                            ILMatch.ToWildcard (what),
-                            System.IO.SearchOption.AllDirectories
+                                where,
+                                what.ToWildcard (),
+                                System.IO.SearchOption.AllDirectories
                             );
 
                             foreach (var d in dd) {
                                 var di = new DirectoryInfo (d);
-
-                                // && Operators.LikeString (d, ILMatch.ToWildcard(what), Microsoft.VisualBasic.CompareMethod.Text))
 
                                 if (di.GetFiles ().Length > 0 && !foundsdd.Contains (d))
                                     foundsdd.Add (d);
@@ -135,14 +84,14 @@ namespace ILFilePacifier
                         try {
                             var ff = Directory.GetFiles (
                                 where,
-                                ILMatch.ToWildcard (what),
+                                what.ToWildcard (),
                                 System.IO.SearchOption.AllDirectories
-                                );
+                            );
 
                             foreach (var f in ff) {
                                 var fi = new FileInfo (f);
 
-                                if (fi.Length > (90 * 1024 * 1024) && !foundsff.Contains (f))
+                                if (fi.Length > (FILE_MIN_SIZE_MB * 1024 * 1024) && !foundsff.Contains (f))
                                     foundsff.Add (f);
 
                             }
@@ -164,40 +113,25 @@ namespace ILFilePacifier
         {
             int c = 0;
             foreach (var found in foundsdd) {
-                string targetDir = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (found).Name;
+                var targetDirFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (found).Name;
 
                 var lines = new String[] {
                         string.Format (
                             "TITLE PROCESSING D {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
-                            ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found, targetDir
+                            ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found, targetDirFullName
                         ).Truncate(240),
 
                         "\r\n\r\n",
 
-                        //// in case the target directory exists, compare the content files
-
-                        //string.Format ("IF EXIST   \"{0}\" (\r\n" +
-                        //"  REM Certutil -hashfile \"{1}\"\r\n" +
-                        //"  REM Certutil -hashfile \"{2}\"\r\n" +
-                        //"  REM PAUSE\r\n" +
-                        //")\r\n\r\n",
-
-                        //targetDir,
-
-                        //Directory.GetFiles(found).FirstOrDefault(),
-                        //Directory.Exists(targetDir) && Directory.GetFiles(targetDir).Length > 0 ? Directory.GetFiles(targetDir).FirstOrDefault() : "NOFILE"
-
-                        //),
-
                         string.Format (
                             "IF EXIST             \"{0}\" (\r\n" +
                             "  ROBOCOPY           \"{0}\" \"{1}\" /MOV\r\n" +
-                            "  ATTRIB -R -S -H    \"{0}\"\r\n" +
+                            "  ATTRIB   -R -S -H  \"{0}\"\r\n" +
                             "  RMDIR              \"{0}\"\r\n" +
                             ")\r\n\r\n",
 
-                            found,
-                            targetDir
+                            found, //0
+                            targetDirFullName //1
                         ),
 
                         "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
@@ -225,10 +159,13 @@ namespace ILFilePacifier
         {
             int c = 0;
             foreach (var found in foundsff) {
+                var targetFileFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + Path.GetFileName (found);
+                var targetDirFullName = Path.GetDirectoryName (matcher.Destination);
+
                 var lines = new String[] {
                         string.Format (
                             "TITLE PROCESSING F {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
-                            ++c, foundsff.Count, matcher.What.FirstOrDefault (), found, Path.GetDirectoryName(matcher.Destination)
+                            ++c, foundsff.Count, matcher.What.FirstOrDefault (), found, targetDirFullName
                         ).Truncate(240),
 
                         "\r\n\r\n",
@@ -240,19 +177,20 @@ namespace ILFilePacifier
                             "  PAUSE\r\n" +
                             ")\r\n\r\n",
 
-                            Path.GetDirectoryName(matcher.Destination) + Path.DirectorySeparator + Path.GetFileName(found),
-                            found
+                            targetFileFullName, //0
+                            found //1
                         ),
 
                         string.Format (
                             "IF EXIST             \"{3}\" (\r\n" +
-                            "  ATTRIB -R -S -H    \"{3}\"\r\n" +
+                            "  ATTRIB   -R -S -H  \"{3}\"\r\n" +
                             "  ROBOCOPY           \"{0}\" \"{1}\" \"{2}\" /MOV\r\n" +
                             ")\r\n\r\n",
-                            Path.GetDirectoryName(found),
-                            Path.GetDirectoryName(matcher.Destination),
-                            Path.GetFileName(found),
-                            found
+                            Path.GetDirectoryName(found), //0
+                            targetDirFullName, //1
+                            Path.GetFileName(found), //2
+                            found, //3
+                            targetFileFullName //4
                         ),
 
                         "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
