@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Alphaleonis.Win32.Filesystem;
 
@@ -228,7 +229,9 @@ namespace ArchiveTorrents
             Console.WriteLine ();
 
             var dts = DateTime.Now.ToString ("yyyyMMddHHmmss");
-            var torrHashFiles = Directory.GetFiles (c.TORR_INPUT_DIR, c.TORR_HASH_EXT_WILDCARD);
+            var torrHashFiles = Directory.GetFiles (c.TORR_INPUT_DIR, "*.txt").
+                Where (fileName => Regex.IsMatch (fileName, ILCommon.Config.Constants.REGEX_SHA, RegexOptions.IgnoreCase)).ToArray ();
+
             totalFiles += torrHashFiles.Length;
 
             for (var i = 0; i < torrHashFiles.Length; i++) {
@@ -314,12 +317,14 @@ namespace ArchiveTorrents
                 var safeName = new FileNameManager ().SafeName (f.Name).Replace (".torrent", "");
                 var targetName = c.TORR_INPUT_DIR + Path.DirectorySeparator + safeName + ".torrent";
 
-                Console.WriteLine ($"Processing file   [{ Magenta (f.FullName) }]\n             >    [{ Red (targetName) }]");
+                Console.WriteLine ($"Processing file   [{ Magenta (f.FullName) }]\n             >    [{ White (targetName) }]");
 
-                if (!File.Exists (targetName)
-                    &&
-                    // also check if there's a match of the safeName (which is stripped of web-site markers)
-                    Directory.GetFiles (c.TORR_INPUT_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.TopDirectoryOnly).Length == 0) {
+                if (Regex.IsMatch (safeName, ILCommon.Config.Constants.REGEX_SHA, RegexOptions.IgnoreCase)) {
+                    Console.WriteLine ($"Skipping metadata [{ Red (targetName) }]\n");
+                } else if (!File.Exists (targetName)
+                      &&
+                      // also check if there's a match of the safeName (which is stripped of web-site markers)
+                      Directory.GetFiles (c.TORR_INPUT_DIR, safeName + c.TORR_EXT_WILDCARD, System.IO.SearchOption.TopDirectoryOnly).Length == 0) {
                     try {
                         File.Copy (f.FullName, targetName);
                         Console.WriteLine ($"Copying to        [{ Green (targetName) }]\n");

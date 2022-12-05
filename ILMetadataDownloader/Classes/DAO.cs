@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Alphaleonis.Win32.Filesystem;
 
+using ILCommon.Config;
 using ILCommon.Data;
 using ILCommon.Data.Model;
 
@@ -247,7 +249,9 @@ namespace MetadataDownloader.Data
         private void LoadHashesFromDirectory (string inputDir, out int originalRecordsCount, out List<MTorrLog> mTorrs)
         {
             Console.WriteLine ("LoadHashesFromDirectory() [{0}]", inputDir);
-            var files = Directory.GetFiles (inputDir, "*.txt").Where (fileName => System.Text.RegularExpressions.Regex.IsMatch (fileName.ToLower(), "\\b[0-9a-f]{40}\\b"));
+            var files = Directory.GetFiles (inputDir, "*.txt").
+                Where (fileName => Regex.IsMatch (fileName, Constants.REGEX_SHA, RegexOptions.IgnoreCase));
+
             originalRecordsCount = files.Count ();
 
             Console.WriteLine ("Loaded \t{0:n0} hashes from directory [{1}]", originalRecordsCount, inputDir);

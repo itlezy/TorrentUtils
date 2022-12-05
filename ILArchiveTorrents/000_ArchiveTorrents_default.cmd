@@ -2,6 +2,9 @@
 
 CD /D %~dp0
 
+COPY   /Y ArchiveTorrents.exe.config.my ArchiveTorrents.exe.config
+ATTRIB -R ArchiveTorrents.exe.config
+
 ECHO Archiving torrents from Incoming Directory..
 ArchiveTorrents.exe
 ECHO:

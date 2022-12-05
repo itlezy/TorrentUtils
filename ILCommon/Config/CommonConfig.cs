@@ -2,6 +2,11 @@
 
 namespace ILCommon.Config
 {
+    public static class Constants
+    {
+        public const string REGEX_SHA = "\\b[0-9a-f]{40}\\b";
+    }
+
     public class CommonConfig
     {
         /// <summary>
