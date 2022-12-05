@@ -112,29 +112,38 @@ namespace ILFilePacifier
         private static void GenerateMoveCmds_Dir (ILMatch matcher, List<string> foundsdd)
         {
             int c = 0;
-            foreach (var found in foundsdd) {
-                var targetDirFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (found).Name;
+            foreach (var foundDirFullName in foundsdd) {
+                var targetDirFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + new DirectoryInfo (foundDirFullName).Name;
 
                 var lines = new String[] {
+                        "REM >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\r\n\r\n",
+
+                        string.Format (
+                            "REM C {0} / {1}\r\n" +
+                            "REM W [ {2} ]\r\n" +
+                            "REM F \"{3}\"\r\n" +
+                            "REM T \"{4}\"\r\n\r\n",
+                            ++c, foundsdd.Count, matcher.What.FirstOrDefault (), foundDirFullName, targetDirFullName),
+
                         string.Format (
                             "TITLE PROCESSING D {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
-                            ++c, foundsdd.Count, matcher.What.FirstOrDefault (), found, targetDirFullName
+                            c, foundsdd.Count, matcher.What.FirstOrDefault (), foundDirFullName, targetDirFullName
                         ).Truncate(240),
 
                         "\r\n\r\n",
 
                         string.Format (
                             "IF EXIST             \"{0}\" (\r\n" +
-                            "  ROBOCOPY           \"{0}\" \"{1}\" /MOV\r\n" +
+                            "  ROBOCOPY           \"{0}\" \"{1}\" /S /J /MOV\r\n" +
                             "  ATTRIB   -R -S -H  \"{0}\"\r\n" +
                             "  RMDIR              \"{0}\"\r\n" +
                             ")\r\n\r\n",
 
-                            found, //0
+                            foundDirFullName, //0
                             targetDirFullName //1
                         ),
 
-                        "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
+                        "REM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\r\n\r\n\r\n"
 
                     };
 
@@ -158,42 +167,53 @@ namespace ILFilePacifier
         private static void GenerateMoveCmds_File (ILMatch matcher, List<string> foundsff)
         {
             int c = 0;
-            foreach (var found in foundsff) {
-                var targetFileFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + Path.GetFileName (found);
+            foreach (var foundFileFullName in foundsff) {
+                var targetFileFullName = Path.GetDirectoryName (matcher.Destination) + Path.DirectorySeparator + Path.GetFileName (foundFileFullName);
                 var targetDirFullName = Path.GetDirectoryName (matcher.Destination);
 
                 var lines = new String[] {
+                        "REM >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\r\n\r\n",
+
+                        string.Format (
+                            "REM C {0} / {1}\r\n" +
+                            "REM W [ {2} ]\r\n" +
+                            "REM F \"{3}\"\r\n" +
+                            "REM T \"{4}\"\r\n\r\n",
+                            ++c, foundsff.Count, matcher.What.FirstOrDefault (), foundFileFullName, targetDirFullName),
+
                         string.Format (
                             "TITLE PROCESSING F {0} / {1} [ {2} ] \"{3}\" TO \"{4}\"",
-                            ++c, foundsff.Count, matcher.What.FirstOrDefault (), found, targetDirFullName
+                            c, foundsff.Count, matcher.What.FirstOrDefault (), foundFileFullName, targetDirFullName
                         ).Truncate(240),
 
                         "\r\n\r\n",
 
                         string.Format (
                             "IF EXIST             \"{0}\" (\r\n" +
+                            "IF EXIST             \"{1}\" (\r\n" +
                             "  Certutil -hashfile \"{1}\"\r\n" +
                             "  Certutil -hashfile \"{0}\"\r\n" +
                             "  PAUSE\r\n" +
+                            " )\r\n" +
                             ")\r\n\r\n",
 
                             targetFileFullName, //0
-                            found //1
+                            foundFileFullName //1
                         ),
 
                         string.Format (
                             "IF EXIST             \"{3}\" (\r\n" +
                             "  ATTRIB   -R -S -H  \"{3}\"\r\n" +
-                            "  ROBOCOPY           \"{0}\" \"{1}\" \"{2}\" /MOV\r\n" +
+                            "  ROBOCOPY           \"{0}\" \"{1}\" \"{2}\" /J /MOV\r\n" +
                             ")\r\n\r\n",
-                            Path.GetDirectoryName(found), //0
+                            Path.GetDirectoryName(foundFileFullName), //0
                             targetDirFullName, //1
-                            Path.GetFileName(found), //2
-                            found, //3
+                            Path.GetFileName(foundFileFullName), //2
+                            foundFileFullName, //3
                             targetFileFullName //4
                         ),
 
-                        "REM ----------------------------------------------------------------------------------------------------------\r\n\r\n\r\n"
+                        "REM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\r\n\r\n\r\n"
 
                     };
 

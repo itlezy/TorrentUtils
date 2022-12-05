@@ -35,6 +35,58 @@ namespace ArchiveTorrents
             Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
         }
 
+        private bool Matches (string[] inputValues, IEnumerable<string> matchers)
+        {
+            foreach (var inputValue in inputValues) {
+                foreach (var what in matchers) {
+                    if (!string.IsNullOrWhiteSpace (inputValue) &&
+                        inputValue.IndexOf (what, StringComparison.InvariantCultureIgnoreCase) > 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines where to archive the torrent file based on matching rules
+        /// </summary>
+        private string MapArchiveDir (Torrent torrTorr, string defaultDir)
+        {
+            if (string.IsNullOrWhiteSpace (c.TORR_ARCHIVE_DIR_CONFIG) ||
+                c.TORR_ARCHIVE_DIR_CONFIG.IndexOf ("|") <= 0 ||
+                c.TORR_ARCHIVE_DIR_CONFIG.IndexOf ("/") <= 0)
+                return defaultDir;
+
+            var rules = c.TORR_ARCHIVE_DIR_CONFIG.Split ('|').Select (s => s.Trim ());
+
+            foreach (var rule in rules) {
+                if (string.IsNullOrWhiteSpace (rule) || rule.IndexOf ("/") <= 0)
+                    continue;
+
+                var matchers = rule.Split ('/')[0].Split (';').Select (s => s.Trim ());
+                var targetDir = rule.Split ('/')[1].Trim ();
+
+                if (
+                    Matches (new string[]{
+                        torrTorr.Name,
+                        torrTorr.Comment,
+                        torrTorr.CreatedBy,
+                        torrTorr.Source
+                    },
+                    matchers
+                )) {
+                    return targetDir;
+                }
+            }
+
+            return defaultDir;
+        }
+
+        /// <summary>
+        /// Removes duplicates and archives torrent files
+        /// </summary>
+        /// <param name="skipCopyToIncoming">Just archive, do not copy to incoming BT client dir</param>
         private void RemDupsAndArchiveTorrents (bool skipCopyToIncoming, ref int duplicatesCount, ref int copiedCount, ref int totalFiles)
         {
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], looking for duplicates..");
@@ -110,16 +162,18 @@ namespace ArchiveTorrents
 
                 // execute all the time, but..
                 {
+                    // 1. archive the torrent file, by copying it
                     if (!File.Exists (c.TORR_ARCHIVE_DIR + torrFile.Name) || forceArchive) {
+
                         // archive as copy
                         File.Copy (
                                     torrFile.FullName,
-                                    c.TORR_ARCHIVE_DIR + torrFile.Name,
+                                    MapArchiveDir (torrTorr, c.TORR_ARCHIVE_DIR) + torrFile.Name,
                                     true
                                     );
                     }
 
-                    // copy to incoming folder of torrent client to pick up
+                    // 2. copy to incoming folder of torrent client to pick up
                     if (!skipCopyToIncoming && !isDuplicate) {
                         Console.WriteLine ($"Archiving torrent [{ Green (torrFile.Name) }]");
 
@@ -133,13 +187,14 @@ namespace ArchiveTorrents
                     }
 
                     if (!isDuplicate) {
-                        // legacy
+                        // legacy : update the torrent download status to the file-list
                         // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
                         File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });
                         // add the largest file name and size to the list, so to be sure we can detect duplicates even if the file-name differs or it's the same file in different torrent files
                         File.AppendAllLines (c.TORR_ARCHIVE_FILES_REG, new string[] { torrLargestFile.Path + "|" + torrLargestFile.Length });
                     }
 
+                    // update the torrent download status to the DB
                     dao.LoadDownloadedFiles (
                         new List<MDownloadedFile> () {
                             new MDownloadedFile () { FileName = torrLargestFile.Path, Length = torrLargestFile.Length } });
@@ -162,6 +217,9 @@ namespace ArchiveTorrents
             }
         }
 
+        /// <summary>
+        /// Processes the .torrhash files that are hashId files (the file name is the hashId)
+        /// </summary>
         private void RemDupsAndArchiveHashes (ref int duplicatesCount, ref int copiedCount, ref int totalFiles)
         {
             // process hash files that are only hasId.torrhash
@@ -169,6 +227,7 @@ namespace ArchiveTorrents
             Console.WriteLine ($"Processing Input Directory [{ Green (c.TORR_INPUT_DIR)}], processing hash files..");
             Console.WriteLine ();
 
+            var dts = DateTime.Now.ToString ("yyyyMMddHHmmss");
             var torrHashFiles = Directory.GetFiles (c.TORR_INPUT_DIR, c.TORR_HASH_EXT_WILDCARD);
             totalFiles += torrHashFiles.Length;
 
@@ -188,7 +247,7 @@ namespace ArchiveTorrents
                 } else {
                     Console.WriteLine ($"Archiving torrent [{ Green (torrHashFile.Name) }]");
 
-                    File.AppendAllLines (c.TORR_INPUT_DIR + Path.DirectorySeparator + "dld_hashIds_" + DateTime.Now.ToString ("yyyyMMddHHmmss") + ".txt", new string[] { torrHashId });
+                    File.AppendAllLines (c.TORR_INPUT_DIR + Path.DirectorySeparator + "dld_hashIds_" + dts + ".txt", new string[] { torrHashId });
 
                     // add the hashId to the list, so to be sure we can detect duplicates even if the file-name differs
                     File.AppendAllLines (c.TORR_ARCHIVE_REG, new string[] { torrHashId });

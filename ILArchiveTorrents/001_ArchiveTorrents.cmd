@@ -7,7 +7,7 @@ CD /D %~dp0
 REM ArchiveTorrents.exe -c
 
 ECHO Update torrent status based on previously downloaded torrents
-ArchiveTorrents.exe -t -d x:\torr_archived
+ArchiveTorrents.exe -t -d "m:\dldz\TORR_ARCHIVED\arc"
 ArchiveTorrents.exe -t -d "%LOCALAPPDATA%\qBittorrent\BT_Backup"
 ArchiveTorrents.exe -t -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
 

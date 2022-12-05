@@ -244,13 +244,13 @@ namespace MetadataDownloader.Data
             }
         }
 
-        private void LoadHashesFromDirectory (string inputFileOrDir, out int originalRecordsCount, out List<MTorrLog> mTorrs)
+        private void LoadHashesFromDirectory (string inputDir, out int originalRecordsCount, out List<MTorrLog> mTorrs)
         {
-            Console.WriteLine ("LoadHashesFromDirectory() [{0}]", inputFileOrDir);
-            var files = Directory.GetFiles (inputFileOrDir, "*.txt").Where (fileName => System.Text.RegularExpressions.Regex.IsMatch (fileName, "\\b[0-9a-f]{40}\\b"));
+            Console.WriteLine ("LoadHashesFromDirectory() [{0}]", inputDir);
+            var files = Directory.GetFiles (inputDir, "*.txt").Where (fileName => System.Text.RegularExpressions.Regex.IsMatch (fileName.ToLower(), "\\b[0-9a-f]{40}\\b"));
             originalRecordsCount = files.Count ();
 
-            Console.WriteLine ("Loaded \t{0:n0} lines from file [{1}]", originalRecordsCount, inputFileOrDir);
+            Console.WriteLine ("Loaded \t{0:n0} hashes from directory [{1}]", originalRecordsCount, inputDir);
 
             mTorrs = new List<MTorrLog> ();
             Console.WriteLine ("Processing lines, extracting hashes..");

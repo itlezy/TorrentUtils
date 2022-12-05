@@ -28,7 +28,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
   REM Update their status based on previously downloaded torrents that might not be in the list just loaded,
   REM   so to avoid downloading torrent file that have already been downloaded previously
-  MetadataDownloader.exe -t -d "x:\torr_archived"
+  MetadataDownloader.exe -t -d "m:\dldz\TORR_ARCHIVED"
   MetadataDownloader.exe -t -d "%LOCALAPPDATA%\qBittorrent\BT_Backup"
 )
 

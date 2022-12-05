@@ -6,20 +6,24 @@ ECHO Archiving torrents from Incoming Directory..
 ArchiveTorrents.exe
 ECHO:
 
-PAUSE
+SET /P VPROCEED="Proceed copying from BT dir [y/n] "
 
-CD /D %~dp0
+IF "%VPROCEED%" == "y" (
 
-ECHO Archiving torrents currently processed by BT client - Step 1/2
-ArchiveTorrents.exe -s -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
-ECHO:
+    CD /D %~dp0
 
-PAUSE
+    ECHO Archiving torrents currently processed by BT client - Step 1/2
+    ArchiveTorrents.exe -s -d "%APPDATA%\BiglyBT\active"              -x "*.dat"
+    ECHO:
 
-CD /D %~dp0
+    PAUSE
 
-ECHO Archiving torrents currently processed by BT client - Step 2/2
-ArchiveTorrents.exe -k
-ECHO:
+    CD /D %~dp0
 
-PAUSE
+    ECHO Archiving torrents currently processed by BT client - Step 2/2
+    ArchiveTorrents.exe -k
+    ECHO:
+
+    PAUSE
+
+)
