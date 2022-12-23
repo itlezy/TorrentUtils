@@ -30,13 +30,17 @@ namespace ILMagnetToURI
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.btnParse = new System.Windows.Forms.Button();
             this.txtURLs = new System.Windows.Forms.TextBox();
             this.txtHashIds = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btnExit = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.btnOpen = new System.Windows.Forms.Button();
             this.timerClipMonitor = new System.Windows.Forms.Timer(this.components);
+            this.ckAutoProcess = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -58,18 +62,20 @@ namespace ILMagnetToURI
             this.txtURLs.Location = new System.Drawing.Point(3, 3);
             this.txtURLs.Multiline = true;
             this.txtURLs.Name = "txtURLs";
-            this.txtURLs.Size = new System.Drawing.Size(836, 355);
+            this.txtURLs.Size = new System.Drawing.Size(626, 449);
             this.txtURLs.TabIndex = 1;
+            this.txtURLs.WordWrap = false;
             // 
             // txtHashIds
             // 
             this.txtHashIds.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtHashIds.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtHashIds.Location = new System.Drawing.Point(845, 3);
+            this.txtHashIds.Location = new System.Drawing.Point(635, 3);
             this.txtHashIds.Multiline = true;
             this.txtHashIds.Name = "txtHashIds";
-            this.txtHashIds.Size = new System.Drawing.Size(836, 355);
+            this.txtHashIds.Size = new System.Drawing.Size(626, 449);
             this.txtHashIds.TabIndex = 2;
+            this.txtHashIds.WordWrap = false;
             // 
             // tableLayoutPanel1
             // 
@@ -85,18 +91,41 @@ namespace ILMagnetToURI
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1684, 467);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1264, 561);
             this.tableLayoutPanel1.TabIndex = 3;
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.ckAutoProcess);
+            this.panel1.Controls.Add(this.btnExit);
+            this.panel1.Controls.Add(this.btnClear);
             this.panel1.Controls.Add(this.btnOpen);
             this.panel1.Controls.Add(this.btnParse);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(3, 364);
+            this.panel1.Location = new System.Drawing.Point(3, 458);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(836, 100);
+            this.panel1.Size = new System.Drawing.Size(626, 100);
             this.panel1.TabIndex = 3;
+            // 
+            // btnExit
+            // 
+            this.btnExit.Location = new System.Drawing.Point(252, 3);
+            this.btnExit.Name = "btnExit";
+            this.btnExit.Size = new System.Drawing.Size(75, 23);
+            this.btnExit.TabIndex = 3;
+            this.btnExit.Text = "E&xit";
+            this.btnExit.UseVisualStyleBackColor = true;
+            this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.Location = new System.Drawing.Point(171, 3);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(75, 23);
+            this.btnClear.TabIndex = 2;
+            this.btnClear.Text = "Clea&r";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // btnOpen
             // 
@@ -111,19 +140,34 @@ namespace ILMagnetToURI
             // timerClipMonitor
             // 
             this.timerClipMonitor.Enabled = true;
-            this.timerClipMonitor.Interval = 333;
+            this.timerClipMonitor.Interval = 999;
             this.timerClipMonitor.Tick += new System.EventHandler(this.timerClipMonitor_Tick);
+            // 
+            // ckAutoProcess
+            // 
+            this.ckAutoProcess.AutoSize = true;
+            this.ckAutoProcess.Checked = true;
+            this.ckAutoProcess.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckAutoProcess.Location = new System.Drawing.Point(9, 33);
+            this.ckAutoProcess.Name = "ckAutoProcess";
+            this.ckAutoProcess.Size = new System.Drawing.Size(89, 17);
+            this.ckAutoProcess.TabIndex = 4;
+            this.ckAutoProcess.Text = "A&uto Process";
+            this.ckAutoProcess.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1684, 467);
+            this.ClientSize = new System.Drawing.Size(1264, 561);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -137,6 +181,9 @@ namespace ILMagnetToURI
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Timer timerClipMonitor;
+        private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnExit;
+        private System.Windows.Forms.CheckBox ckAutoProcess;
     }
 }
 

@@ -73,6 +73,8 @@ namespace ILMagnetToURI
                     }
                 }
             }
+
+            Clear ();
         }
 
         private void timerClipMonitor_Tick (object sender, EventArgs e)
@@ -101,7 +103,33 @@ namespace ILMagnetToURI
                     }
 
                 }
+
+                ParseURLs ();
             }
+
+            if (ckAutoProcess.Checked)
+                OpenInBrowser ();
+        }
+
+        private void btnClear_Click (object sender, EventArgs e)
+        {
+            Clear ();
+        }
+
+        private void Clear ()
+        {
+            txtURLs.Clear ();
+            txtHashIds.Clear ();
+
+            var c = Clipboard.GetText ();
+
+            if (c.IndexOf ("magnet:") >= 0)
+                Clipboard.Clear ();
+        }
+
+        private void btnExit_Click (object sender, EventArgs e)
+        {
+            Application.Exit ();
         }
     }
 }

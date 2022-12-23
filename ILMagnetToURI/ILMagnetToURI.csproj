@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>6725433_cut_document_extension_file_file format_icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,9 +82,12 @@
   <ItemGroup>
     <PackageReference Include="AlphaFS" Version="2.2.6" />
     <PackageReference Include="MonoTorrent" Version="3.0.0-beta.rev0104" />
-    </ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="6725433_cut_document_extension_file_file format_icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
