@@ -38,6 +38,13 @@ namespace ArchiveTorrents
             if (opts.CreateTables) {
 
                 new DAO ().CreateTables ();
+            } else if (opts.CacheDownloadedTorrents) {
+
+                if (Directory.Exists (opts.InputDir))
+                    new ArchiveManager ().CacheDownloadedTorrents (opts.InputDir);
+                else
+                    Console.Error.WriteLine ("Directory not found '{0}'", opts.InputDir);
+
             } else if (opts.LoadDownloadedTorrents) {
 
                 if (Directory.Exists (opts.InputDir))
@@ -49,6 +56,13 @@ namespace ArchiveTorrents
 
                 if (Directory.Exists (opts.InputDir))
                     new ArchiveManager ().LoadDownloadedFiles (opts.InputDir);
+                else
+                    Console.Error.WriteLine ("Directory not found '{0}'", opts.InputDir);
+
+            } else if (opts.NullFiles) {
+
+                if (Directory.Exists (opts.InputDir))
+                    new ArchiveManager ().DeleteNullFiles (opts.InputDir);
                 else
                     Console.Error.WriteLine ("Directory not found '{0}'", opts.InputDir);
 

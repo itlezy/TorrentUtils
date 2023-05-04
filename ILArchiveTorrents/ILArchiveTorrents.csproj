@@ -47,6 +47,8 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,6 +60,11 @@
     <Compile Include="Classes\ATConfig.cs" />
     <Compile Include="Classes\CommandLineOptions.cs" />
     <Compile Include="Classes\DAO.cs" />
+    <Compile Include="Connected Services\TorrageWS\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -78,6 +85,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
+    <None Include="Connected Services\TorrageWS\ArchiveTorrents.TorrageWS.cacheTorrentResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Connected Services\TorrageWS\Cache.wsdl" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AlphaFS" Version="2.2.6" />
@@ -89,6 +100,18 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="archive.ico" />
+    <None Include="Connected Services\TorrageWS\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Connected Services\TorrageWS\configuration.svcinfo" />
+    <None Include="Connected Services\TorrageWS\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Connected Services\TorrageWS\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

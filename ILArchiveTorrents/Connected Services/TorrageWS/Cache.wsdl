@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn:Torrage" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns="http://schemas.xmlsoap.org/wsdl/" name="Cache" targetNamespace="urn:Torrage" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types />
+  <wsdl:message name="cacheTorrentRequest">
+    <wsdl:part name="torrent" type="xsd:string" />
+  </wsdl:message>
+  <wsdl:message name="cacheTorrentResponse">
+    <wsdl:part name="Result" type="xsd:string" />
+  </wsdl:message>
+  <wsdl:portType name="CachePortType">
+    <wsdl:operation name="cacheTorrent">
+      <wsdl:input message="tns:cacheTorrentRequest" />
+      <wsdl:output message="tns:cacheTorrentResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="CacheBinding" type="tns:CachePortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc" />
+    <wsdl:operation name="cacheTorrent">
+      <soap:operation soapAction="urn:xmethods-delayed-quotes#cacheTorrent" />
+      <wsdl:input>
+        <soap:body use="encoded" namespace="urn:xmethods-delayed-quotes" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="encoded" namespace="urn:xmethods-delayed-quotes" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CacheService">
+    <wsdl:port name="CachePort" binding="wsdl:CacheBinding">
+      <soap:address location="https://itorrents.org/api/index.php" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 using Alphaleonis.Win32.Filesystem;
 
@@ -36,6 +37,24 @@ namespace ArchiveTorrents
             Console.WriteLine ($"{Green ("It's all good man.") } Duplicates { duplicatesCount }, copied { copiedCount } out of { totalFiles } ");
         }
 
+        internal void CacheDownloadedTorrents (string inputDir)
+        {
+            var ff = new IOManager ().ListDownloadedTorrents (inputDir, string.Empty);
+
+            foreach (var f in ff.MDownloadedTorrs) {
+                using (TorrageWS.CachePortTypeClient c = new TorrageWS.CachePortTypeClient (
+                    new System.ServiceModel.BasicHttpsBinding (),
+                    new System.ServiceModel.EndpointAddress ("https://itorrents.org/api/torrage.wsdl"))) {
+
+                    Console.WriteLine ("Loading {0}", f.HashId, f.Name);
+                    c.cacheTorrent (Convert.ToBase64String (File.ReadAllBytes (f.FullName)));
+                    Console.WriteLine ("OK");
+                }
+
+                Thread.Sleep (3000);
+            }
+        }
+
         private bool Matches (string[] inputValues, IEnumerable<string> matchers)
         {
             foreach (var inputValue in inputValues) {
@@ -47,6 +66,47 @@ namespace ArchiveTorrents
             }
 
             return false;
+        }
+
+        const int BUF_SIZE = 1204 * 1024 * 4;
+
+        internal void DeleteNullFiles (string inputDir)
+        {
+            var allFiles = Directory.GetFiles (inputDir, "*.*", System.IO.SearchOption.AllDirectories);
+            var bin = new byte[BUF_SIZE];
+
+            for (var i = 0; i < allFiles.Length; i++) {
+                try {
+                    var file = new FileInfo (allFiles[i]);
+
+                    var fs = File.OpenRead (file.FullName);
+                    var foundNN = false;
+
+                    for (
+                        int bs = fs.Read (bin, 0, BUF_SIZE), maxc = 0;
+                        bs > 0 && maxc < 33 && !foundNN;
+                        maxc++
+                        ) {
+
+                        for (int r = 0; r < bs; r++) {
+
+                            if (bin[r] != 0x0) {
+                                foundNN = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!foundNN)
+                        Console.WriteLine ("DEL \"{0}\"", file.FullName);
+                    //else
+                    //   Console.WriteLine ("Not null file   {0}", file.FullName);
+
+                } catch (System.IO.FileNotFoundException ex) {
+                    Console.Error.WriteLine ("File name too long {0}", ex.Message);
+                }
+            }
+
         }
 
         /// <summary>

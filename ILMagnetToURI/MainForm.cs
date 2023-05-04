@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows.Forms;
 
 namespace ILMagnetToURI
@@ -130,6 +131,17 @@ namespace ILMagnetToURI
         private void btnExit_Click (object sender, EventArgs e)
         {
             Application.Exit ();
+        }
+
+        private void btnRarBG_Click (object sender, EventArgs e)
+        {
+            var search = HttpUtility.UrlEncode (Clipboard.GetText ());
+
+            Process.Start (
+                 new ProcessStartInfo {
+                     UseShellExecute = true,
+                     FileName = "https://rarbgmirror.org/torrents.php?search=" + search + "&category%%5B%%5D=4&"
+                 });
         }
     }
 }

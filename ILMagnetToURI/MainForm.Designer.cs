@@ -36,11 +36,12 @@ namespace ILMagnetToURI
             this.txtHashIds = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.ckAutoProcess = new System.Windows.Forms.CheckBox();
             this.btnExit = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
             this.btnOpen = new System.Windows.Forms.Button();
             this.timerClipMonitor = new System.Windows.Forms.Timer(this.components);
-            this.ckAutoProcess = new System.Windows.Forms.CheckBox();
+            this.btnRarBG = new System.Windows.Forms.Button();
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -96,6 +97,7 @@ namespace ILMagnetToURI
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.btnRarBG);
             this.panel1.Controls.Add(this.ckAutoProcess);
             this.panel1.Controls.Add(this.btnExit);
             this.panel1.Controls.Add(this.btnClear);
@@ -107,9 +109,21 @@ namespace ILMagnetToURI
             this.panel1.Size = new System.Drawing.Size(626, 100);
             this.panel1.TabIndex = 3;
             // 
+            // ckAutoProcess
+            // 
+            this.ckAutoProcess.AutoSize = true;
+            this.ckAutoProcess.Checked = true;
+            this.ckAutoProcess.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckAutoProcess.Location = new System.Drawing.Point(9, 33);
+            this.ckAutoProcess.Name = "ckAutoProcess";
+            this.ckAutoProcess.Size = new System.Drawing.Size(89, 17);
+            this.ckAutoProcess.TabIndex = 4;
+            this.ckAutoProcess.Text = "A&uto Process";
+            this.ckAutoProcess.UseVisualStyleBackColor = true;
+            // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(252, 3);
+            this.btnExit.Location = new System.Drawing.Point(333, 3);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(75, 23);
             this.btnExit.TabIndex = 3;
@@ -143,17 +157,15 @@ namespace ILMagnetToURI
             this.timerClipMonitor.Interval = 999;
             this.timerClipMonitor.Tick += new System.EventHandler(this.timerClipMonitor_Tick);
             // 
-            // ckAutoProcess
+            // btnRarBG
             // 
-            this.ckAutoProcess.AutoSize = true;
-            this.ckAutoProcess.Checked = true;
-            this.ckAutoProcess.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckAutoProcess.Location = new System.Drawing.Point(9, 33);
-            this.ckAutoProcess.Name = "ckAutoProcess";
-            this.ckAutoProcess.Size = new System.Drawing.Size(89, 17);
-            this.ckAutoProcess.TabIndex = 4;
-            this.ckAutoProcess.Text = "A&uto Process";
-            this.ckAutoProcess.UseVisualStyleBackColor = true;
+            this.btnRarBG.Location = new System.Drawing.Point(252, 3);
+            this.btnRarBG.Name = "btnRarBG";
+            this.btnRarBG.Size = new System.Drawing.Size(75, 23);
+            this.btnRarBG.TabIndex = 5;
+            this.btnRarBG.Text = "rarb&g";
+            this.btnRarBG.UseVisualStyleBackColor = true;
+            this.btnRarBG.Click += new System.EventHandler(this.btnRarBG_Click);
             // 
             // MainForm
             // 
@@ -184,6 +196,7 @@ namespace ILMagnetToURI
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.CheckBox ckAutoProcess;
+        private System.Windows.Forms.Button btnRarBG;
     }
 }
 
