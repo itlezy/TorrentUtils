@@ -21,22 +21,6 @@ namespace ILCommon
             return false;
         }
 
-        public string NormalizeFileName (string originalName)
-        {
-            return originalName;
-                //.Replace ("-[rarbg.to]", "")
-                //.Replace ("-[rarbg]", "")
-                //.Replace ("-[rbg.to]", "")
-                //.Replace ("-[rbg]", "")
-                //.Replace ("-[rartv]", "")
-
-                //.Replace ("[rarbg.to]", "")
-                //.Replace ("[rarbg]", "")
-                //.Replace ("[rbg.to]", "")
-                //.Replace ("[rartv]", "")
-                //.Replace ("[rbg]", "");
-        }
-
         public bool IsMostlyLatin (string fileName)
         {
             var cc = fileName.ToCharArray ();

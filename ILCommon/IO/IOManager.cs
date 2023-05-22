@@ -54,8 +54,8 @@ namespace ILCommon.IO
                             r.MDownloadedTorrs.Add (new MDownloadedTorr () {
                                 HashId = torr.InfoHashes.V1OrV2.ToHex ().ToLower (),
                                 Name = !string.IsNullOrWhiteSpace (torr.Name) ?
-                                new FileNameManager ().NormalizeFileName (torr.Name) :
-                                new FileNameManager ().NormalizeFileName (Path.GetFileNameWithoutExtension (file.Name)),
+                                torr.Name :
+                                Path.GetFileNameWithoutExtension (file.Name),
                                 Length = torr.Size,
                                 FullName = file.FullName
                             });

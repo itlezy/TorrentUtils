@@ -75,10 +75,17 @@ namespace ArchiveTorrents
 
             } else if (opts.SkipCopyTorrents) {
 
-                new ArchiveManager ().RemDupsAndArchive (true);
+                if (Directory.Exists (opts.InputDir))
+                    new ArchiveManager ().RemDupsAndArchive (true, opts.InputDir);
+                else
+                    new ArchiveManager ().RemDupsAndArchive (true);
+
             } else {
 
-                new ArchiveManager ().RemDupsAndArchive (false);
+                if (Directory.Exists (opts.InputDir))
+                    new ArchiveManager ().RemDupsAndArchive (false, opts.InputDir);
+                else
+                    new ArchiveManager ().RemDupsAndArchive (false);
             }
         }
 
